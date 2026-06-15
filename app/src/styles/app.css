@@ -164,6 +164,35 @@ button { font-family: inherit; }
 .ad-btn-ghost { background: transparent; color: var(--sf-ink-2); border-color: var(--sf-border-strong); }
 .ad-btn-ink { background: var(--sf-ink); color: var(--sf-bg); }
 
+/* ── Buttons: hover & focus ───────────────────────────────────
+   Hover gives every button feedback; focus is shown with a RING
+   (outline) rather than by recolouring the label or its background,
+   so a button's text can never collide with its background on focus.
+   :focus-visible keeps the ring keyboard-only — no ring on plain
+   mouse clicks. */
+.ad-btn-primary:hover { background: var(--sf-primary-hover); }
+.ad-btn-soft:hover    { background: var(--sf-surface-3); border-color: var(--sf-border-strong); }
+.ad-btn-ghost:hover   { background: var(--sf-surface-2); }
+.ad-btn-ink:hover     { background: var(--sf-ink-2); }
+
+:where(button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--sf-primary);
+  outline-offset: 2px;
+}
+/* The search box and text fields already signal focus through their
+   own border + soft ring, so suppress the duplicate outline there. */
+.ad-search:focus-within { border-color: var(--sf-primary); box-shadow: 0 0 0 3px var(--sf-primary-soft); }
+.ad-search input:focus-visible,
+.ad-chatlist-search input:focus-visible,
+.ad-ai-cb-input input:focus-visible,
+.sf-input:focus-visible,
+.og2-input:focus-visible,
+.og2-text:focus-visible { outline: none; }
+/* Windows High Contrast / forced-colors: use a system focus ring. */
+@media (forced-colors: active) {
+  :where(button, a[href], input, select, textarea):focus-visible { outline-color: Highlight; }
+}
+
 .ad-card { background: var(--sf-surface); border: 1px solid var(--sf-border); border-radius: 14px; overflow: hidden; }
 .ad-card-h { padding: 13px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--sf-border); gap: 8px; }
 .ad-card-h h3 { margin: 0; font-size: 13.5px; font-weight: 700; letter-spacing: -0.005em; }
