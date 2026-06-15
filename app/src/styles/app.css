@@ -11,7 +11,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 * { box-sizing: border-box; }
-button { font-family: inherit; }
+button { font-family: inherit; color: inherit; }
 ::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-thumb { background: var(--sf-border-strong); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--sf-muted); }
