@@ -30,6 +30,9 @@ export function TeachersPage({ role }) {
     const q = query.trim().toLowerCase();
     let list = teachers;
     if (q) list = list.filter((tc) => `${tc.n} ${tc.sub}`.toLowerCase().includes(q));
+    if (chip === 1) list = list.filter((tc) => /o['‘]?qit/i.test(tc.role));
+    if (chip === 2) list = list.filter((tc) => /assistent/i.test(tc.role));
+    if (chip === 3) list = list.filter((tc) => tc.st2 === 'active');
     if (chip === 4) list = list.filter((tc) => tc.st2 === 'review');
     return list;
   }, [teachers, query, chip]);

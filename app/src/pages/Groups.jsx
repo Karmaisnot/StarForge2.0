@@ -21,6 +21,7 @@ export function GroupsPage({ role }) {
     const q = query.trim().toLowerCase();
     let list = allGroups;
     if (q) list = list.filter((g) => `${g.n} ${g.t}`.toLowerCase().includes(q));
+    if (chip === 1) list = list.filter((g) => g.st > 0);
     if (chip === 2) list = list.filter((g) => g.st >= g.cap * 0.9);
     if (chip === 3) list = list.filter((g) => g.st < g.cap);
     return list;

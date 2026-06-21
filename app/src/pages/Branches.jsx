@@ -10,11 +10,12 @@ import { BRANCHES } from '../data/seeds.js';
 export function BranchesPage() {
   const { t } = useTranslation();
   const a = useActions();
-  const { items: branches, add } = useCollection('branches', BRANCHES, 'n');
+  const { items: branches, add, update } = useCollection('branches', BRANCHES, 'n');
   const statusPill = {
     active: ['success', t('status.active')],
     review: ['warn', t('status.reviewState')],
     opening: ['primary', t('status.opening')],
+    paused: ['neutral', t('status.paused')],
   };
 
   const openBranch = () =>
@@ -38,6 +39,41 @@ export function BranchesPage() {
           status: 'opening',
         }),
     });
+
+  // Assign / change a branch manager. For a branch that is still opening, naming
+  // a manager is the milestone that brings it online.
+  const assignManager = (b) =>
+    a.save({
+      title: t('branches.assignManager'),
+      fields: [{ name: 'mgr', label: t('branches.assignManager'), required: true, value: b.mgr === '—' ? '' : b.mgr, placeholder: t('ui.fNamePh') }],
+      onSubmit: (v) => update(b.n, { mgr: v.mgr, status: b.status === 'opening' ? 'active' : b.status }),
+    });
+
+  // Edit a branch in place (name + manager).
+  const configureBranch = (b) =>
+    a.save({
+      title: t('branches.actConfig'),
+      fields: [
+        { name: 'name', label: t('nav.branches'), required: true, value: b.n },
+        { name: 'mgr', label: t('branches.assignManager'), value: b.mgr === '—' ? '' : b.mgr },
+      ],
+      onSubmit: (v) => update(b.n, { n: v.name || b.n, mgr: v.mgr || b.mgr }),
+    });
+
+  // Pause ⇄ resume a branch — confirms, then flips its status for real.
+  const togglePause = (b) => {
+    const paused = b.status === 'paused';
+    a.confirm({
+      icon: Icons.clock,
+      tone: paused ? 'success' : 'warn',
+      toastTone: paused ? 'success' : 'warn',
+      title: paused ? t('branches.actResume') : t('branches.actPause'),
+      message: paused ? b.n : t('branches.pauseConfirm'),
+      confirmLabel: paused ? t('branches.actResume') : t('branches.actPause'),
+      desc: b.n,
+      onConfirm: () => update(b.n, { status: paused ? 'active' : 'paused' }),
+    });
+  };
 
   return (
     <>
@@ -75,8 +111,8 @@ export function BranchesPage() {
                 <div className="ad-bc-open-bar"><div style={{ width: '65%' }} /></div>
                 <div className="ad-bc-open-t">{t('branches.openingProgress')}</div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-                  <button className="ad-btn ad-btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={a.create}>{t('branches.assignManager')}</button>
-                  <button className="ad-btn ad-btn-ghost" onClick={a.soon}>{t('branches.configure')}</button>
+                  <button className="ad-btn ad-btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => assignManager(b)}>{t('branches.assignManager')}</button>
+                  <button className="ad-btn ad-btn-ghost" onClick={() => configureBranch(b)}>{t('branches.configure')}</button>
                 </div>
               </div>
             ) : (
@@ -90,8 +126,8 @@ export function BranchesPage() {
                 </div>
                 <div className="ad-bc-actions">
                   <button className="ad-bc-act" onClick={a.report}>{cloneElement(Icons.trend, { size: 13 })} {t('branches.actReport')}</button>
-                  <button className="ad-bc-act" onClick={a.soon}>{cloneElement(Icons.settings, { size: 13 })} {t('branches.actConfig')}</button>
-                  <button className="ad-bc-act" style={{ color: 'var(--sf-warn)' }} onClick={a.soon}>{cloneElement(Icons.clock, { size: 13 })} {t('branches.actPause')}</button>
+                  <button className="ad-bc-act" onClick={() => configureBranch(b)}>{cloneElement(Icons.settings, { size: 13 })} {t('branches.actConfig')}</button>
+                  <button className="ad-bc-act" style={{ color: b.status === 'paused' ? 'var(--sf-success)' : 'var(--sf-warn)' }} onClick={() => togglePause(b)}>{cloneElement(Icons.clock, { size: 13 })} {b.status === 'paused' ? t('branches.actResume') : t('branches.actPause')}</button>
                 </div>
               </>
             )}

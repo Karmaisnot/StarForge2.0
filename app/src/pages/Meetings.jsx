@@ -20,6 +20,21 @@ export function MeetingsPage({ role }) {
   const [place, setPlace] = useState('hall');
   const [topic, setTopic] = useState('');
   const { items: meetings, add } = useCollection('meetings', MEETINGS, 'id');
+  const [view, setView] = useState('list');
+
+  // Map a May day-number to an ISO weekday (Mon=1…Sun=7); 19 May 2026 is a Tue.
+  const meetWeekday = (dNum) => ((((Number(dNum) - 19 + 1) % 7) + 7) % 7) + 1;
+  const openMeeting = (m) =>
+    a.open(m.t, {
+      icon: m.online ? Icons.video : Icons.cal,
+      title: m.t,
+      sub: `${m.dNum} May · ${m.tm}`,
+      rows: [
+        [t('meetings.participants'), `${m.aud} · ${m.cnt} ${t('meetings.people')}`],
+        [t('meetings.timeLabel'), m.tm],
+        [t('meetings.place'), m.loc],
+      ],
+    });
 
   const audiences = [
     [t('meetings.audWholeBranch'), Icons.globe],
@@ -78,7 +93,7 @@ export function MeetingsPage({ role }) {
         sub={t('meetings.sub')}
         right={
           <>
-            <Segmented value="list" onChange={() => a.soon()} options={[{ id: 'list', label: t('common.list') }, { id: 'cal', label: t('common.calendar') }]} />
+            <Segmented value={view} onChange={setView} options={[{ id: 'list', label: t('common.list') }, { id: 'cal', label: t('common.calendar') }]} />
             <button className="ad-btn ad-btn-primary" onClick={scheduleMeeting}>{cloneElement(Icons.plus, { size: 14 })} {t('meetings.schedule')}</button>
           </>
         }
@@ -86,6 +101,21 @@ export function MeetingsPage({ role }) {
       <div className="og2-meet-layout">
         <div>
           <SectionHeader>{t('meetings.upcoming')}</SectionHeader>
+          {view === 'cal' ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+              {[1, 2, 3, 4, 5, 6, 7].map((wd) => (
+                <div key={wd} style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--sf-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center', paddingBottom: 4, borderBottom: '1px solid var(--sf-border)' }}>{t('common.wd' + wd)}</div>
+                  {meetings.filter((m) => meetWeekday(m.dNum) === wd).map((m) => (
+                    <button key={m.id} onClick={() => openMeeting(m)} style={{ textAlign: 'left', background: 'var(--sf-surface-2)', border: '1px solid var(--sf-border)', borderLeft: `3px solid ${m.tone}`, borderRadius: 8, padding: '7px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span className="sf-mono" style={{ fontSize: 10, color: 'var(--sf-muted)' }}>{m.dNum} May · {m.tm}</span>
+                      <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--sf-ink)' }}>{m.t}</span>
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {meetings.map((m) => (
               <Card key={m.id} pad={false} className="og2-meet">
@@ -110,6 +140,7 @@ export function MeetingsPage({ role }) {
               </Card>
             ))}
           </div>
+          )}
         </div>
         <div>
           <Card title={t('meetings.quick')}>

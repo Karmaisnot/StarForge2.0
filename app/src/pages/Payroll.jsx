@@ -14,13 +14,17 @@ const ROWS = [
   { n: 'Malika Yusupova', dept: 'Tabiiy fanlar', base: 5500000, cards: 600000, att: 400000, ret: 700000 },
   { n: 'Gulnora Saidova', dept: 'Qabul', base: 5000000, cards: 0, att: 400000, ret: 200000 },
 ];
-const sum = (sel) => ROWS.reduce((a, r) => a + sel(r), 0);
+const MONTH_FACTOR = { may: 1, apr: 0.96, mar: 0.92 };
 
 export function PayrollPage({ role }) {
   const { t } = useTranslation();
   const a = useActions();
   const ceo = role === 'ceo';
   const [month, setMonth] = useState('may');
+  // The month segment really re-scales the run — base + every bonus column.
+  const f = MONTH_FACTOR[month] ?? 1;
+  const rows = ROWS.map((r) => ({ ...r, base: Math.round(r.base * f), cards: Math.round(r.cards * f), att: Math.round(r.att * f), ret: Math.round(r.ret * f) }));
+  const sum = (sel) => rows.reduce((a, r) => a + sel(r), 0);
   const tot = sum((r) => r.base + r.cards + r.att + r.ret);
 
   return (
@@ -53,7 +57,7 @@ export function PayrollPage({ role }) {
           { label: t('payroll.colCardBonus'), align: 'right' }, { label: t('payroll.colAttBonus'), align: 'right' }, { label: t('payroll.colRetention'), align: 'right' },
           { label: t('payroll.colTotal'), align: 'right' }, { label: t('cols.status'), align: 'center' },
         ]}>
-          {ROWS.map((r, i) => {
+          {rows.map((r, i) => {
             const total = r.base + r.cards + r.att + r.ret;
             return (
               <tr key={i}>
@@ -69,7 +73,7 @@ export function PayrollPage({ role }) {
             );
           })}
           <tr style={{ background: 'var(--sf-surface-2)', fontWeight: 700 }}>
-            <td colSpan={2} style={{ fontWeight: 800 }}>{t('payroll.totalRow')} · {ROWS.length} {t('payroll.staffWord')}</td>
+            <td colSpan={2} style={{ fontWeight: 800 }}>{t('payroll.totalRow')} · {rows.length} {t('payroll.staffWord')}</td>
             <td align="right"><Money uzs={sum((r) => r.base)} /></td>
             <td align="right"><Money uzs={sum((r) => r.cards)} /></td>
             <td align="right"><Money uzs={sum((r) => r.att)} /></td>

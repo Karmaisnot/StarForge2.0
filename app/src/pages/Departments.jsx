@@ -18,7 +18,38 @@ const DEPTS = [
 export function DepartmentsPage({ role }) {
   const { t } = useTranslation();
   const a = useActions();
-  const { items: depts, add } = useCollection('departments', DEPTS, 'n');
+  const { items: depts, add, update } = useCollection('departments', DEPTS, 'n');
+
+  // Read-only org structure across every department.
+  const showStructure = () =>
+    a.open(t('departments.structure'), {
+      icon: Icons.cohort,
+      title: t('departments.structure'),
+      rows: depts.map((d) => [d.n, `${d.head} · ${d.cnt} ${t('departments.staffWord')}`]),
+    });
+
+  // One department's detail card.
+  const showDept = (d) =>
+    a.open(d.n, {
+      icon: Icons.folder,
+      title: d.n,
+      sub: d.head,
+      rows: [
+        [t('departments.head'), d.head],
+        [t('departments.kpiStaff'), String(d.cnt)],
+        [t('departments.groupWord'), String(d.groups)],
+        [t('cols.staffMember'), d.members.join(', ')],
+      ],
+    });
+
+  // Add a member to this specific department (updates its roster + count).
+  const addMember = (d) =>
+    a.create({
+      title: `${d.n} · ${t('departments.addMember')}`,
+      submitLabel: t('common.add'),
+      fields: [{ name: 'name', label: t('cols.staffMember'), required: true, placeholder: t('ui.fNamePh') }],
+      onSubmit: (v) => update(d.n, { members: [...d.members, v.name], cnt: d.cnt + 1 }),
+    });
 
   const addDept = () =>
     a.create({
@@ -46,7 +77,7 @@ export function DepartmentsPage({ role }) {
         sub={t('departments.sub')}
         right={
           <>
-            <Button kind="soft" onClick={a.soon}>{cloneElement(Icons.cohort, { size: 14 })} {t('departments.structure')}</Button>
+            <Button kind="soft" onClick={showStructure}>{cloneElement(Icons.cohort, { size: 14 })} {t('departments.structure')}</Button>
             <Button kind="primary" onClick={addDept}>{cloneElement(Icons.plus, { size: 14 })} {t('departments.newDept')}</Button>
           </>
         }
@@ -68,7 +99,7 @@ export function DepartmentsPage({ role }) {
                   <div className="og-dept-n">{d.n}</div>
                   <div className="og-dept-meta">{d.cnt} {t('departments.staffWord')}{d.groups > 0 ? ` · ${d.groups} ${t('departments.groupWord')}` : ''}</div>
                 </div>
-                <button className="ad-mini-btn" style={{ color: 'var(--sf-muted)' }} onClick={a.soon}>{cloneElement(Icons.more, { size: 15 })}</button>
+                <button className="ad-mini-btn" style={{ color: 'var(--sf-muted)' }} onClick={() => showDept(d)}>{cloneElement(Icons.more, { size: 15 })}</button>
               </div>
               <div className="og-dept-head-row">
                 <SfAvatar name={d.head} size={26} />
@@ -79,7 +110,7 @@ export function DepartmentsPage({ role }) {
                   {d.members.slice(0, 4).map((m, j) => <div key={j} className="og-av-wrap" style={{ zIndex: 4 - j }}><SfAvatar name={m} size={28} /></div>)}
                   {d.cnt > 4 && <div className="og-av-more">+{d.cnt - 4}</div>}
                 </div>
-                <button className="og-add-member" onClick={a.create}>{cloneElement(Icons.plus, { size: 13 })} {t('departments.addMember')}</button>
+                <button className="og-add-member" onClick={() => addMember(d)}>{cloneElement(Icons.plus, { size: 13 })} {t('departments.addMember')}</button>
               </div>
             </div>
           </Card>

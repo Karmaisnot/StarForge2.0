@@ -56,7 +56,14 @@
     "readOnly": "Read only",
     "auditMode": "Audit mode",
     "send": "Send",
-    "of": "of"
+    "of": "of",
+    "wd1": "Mon",
+    "wd2": "Tue",
+    "wd3": "Wed",
+    "wd4": "Thu",
+    "wd5": "Fri",
+    "wd6": "Sat",
+    "wd7": "Sun"
   },
   "nav": {
     "dash": "Dashboard",
@@ -166,7 +173,8 @@
     "opportunity": "Opportunity",
     "escalation": "escal.",
     "opening": "Opening",
-    "reviewState": "Under review"
+    "reviewState": "Under review",
+    "paused": "Paused"
   },
   "toast": {
     "saved": "Saved",
@@ -259,6 +267,8 @@
     "actReport": "Report",
     "actConfig": "Configure",
     "actPause": "Pause",
+    "actResume": "Resume",
+    "pauseConfirm": "Pause this branch temporarily?",
     "newCardTitle": "Open a new branch",
     "newCardSub": "Configure address, manager, rooms and groups",
     "comparison": "Branch comparison",
@@ -566,6 +576,7 @@
     "rowLanguage": "Language",
     "rowCurrency": "Currency",
     "rowDensity": "Density",
+    "rowNote": "This setting is managed at the organization level.",
     "rowEmail": "Email reports",
     "rowCritical": "Critical alerts",
     "rowWeekly": "Weekly summary",
@@ -577,6 +588,7 @@
     "valYes": "Yes",
     "valSystem": "System",
     "valDense": "Dense",
+    "valComfortable": "Comfortable",
     "valDaily": "Daily",
     "valImmediate": "Immediate",
     "valMonday": "Monday",

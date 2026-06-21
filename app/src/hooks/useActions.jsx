@@ -149,6 +149,25 @@ export function useActions() {
           />
         )),
 
+      // Generic confirmation — pages pass their own copy and mutation. The
+      // approve/reject/flag handlers above are pre-styled specialisations; this
+      // covers every other yes/no action (pause a branch, archive, etc.).
+      confirm: (o = {}) =>
+        open(({ close }) => (
+          <ConfirmModal
+            close={close}
+            icon={o.icon || Icons.check}
+            tone={o.tone || 'primary'}
+            title={o.title}
+            message={o.message}
+            confirmLabel={o.confirmLabel || t('common.approve')}
+            onConfirm={() => {
+              o.onConfirm?.();
+              if (o.toast !== false) toast(o.toastTone || 'info', o.title, o.desc);
+            }}
+          />
+        )),
+
       approve: (raw, o = {}) => {
         const name = named(raw);
         return open(({ close }) => (

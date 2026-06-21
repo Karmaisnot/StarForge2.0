@@ -25,6 +25,10 @@ export function HRPage({ role }) {
   const [seg, setSeg] = useState('all');
   const { items: employees, add } = useCollection('hr', EMPLOYEES, 'n');
 
+  // all / teacher / admin segment — split by teaching vs administrative dept.
+  const TEACHING_DEPTS = ['Matematika', 'Ingliz tili', 'Tabiiy fanlar'];
+  const shown = seg === 'all' ? employees : employees.filter((e) => TEACHING_DEPTS.includes(e.dept) === (seg === 'teacher'));
+
   const createStaff = () =>
     a.create({
       title: t('hr.createStaff'),
@@ -103,7 +107,7 @@ export function HRPage({ role }) {
           { label: t('cols.staffMember') }, { label: t('cols.position') }, { label: t('cols.department') }, ...(ceo ? [{ label: t('cols.branch') }] : []),
           { label: t('cols.contract') }, { label: t('cols.tenure'), align: 'center' }, { label: t('cols.salary'), align: 'right' }, { label: t('cols.status'), align: 'center' },
         ]}>
-          {employees.map((e) => (
+          {shown.map((e) => (
             <tr key={e.n} onClick={() => a.open(e.n)}>
               <td><div className="ad-cell-u"><SfAvatar name={e.n} size={30} /><span style={{ fontWeight: 600 }}>{e.n}</span></div></td>
               <td style={{ fontSize: 12.5 }}>{e.pos}</td>

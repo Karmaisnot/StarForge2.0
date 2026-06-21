@@ -17,6 +17,7 @@ const nowStamp = () => {
 
 const MONTHS = ['Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek', 'Yan', 'Fev', 'Mar', 'Apr', 'May'];
 const SERIES = [820, 860, 910, 890, 960, 1020, 1080, 1040, 1140, 1180, 1220, 1284].map((x) => x * 1e6);
+const DEBT_SERIES = [180, 172, 165, 158, 150, 142, 138, 130, 124, 118, 110, 102].map((x) => x * 1e6);
 
 const TXNS = [
   { st: 'Akbarov Akmal', g: '9-B Algebra', b: 'Yunusobod', amt: 600000, m: 'Click', d: '19.05 09:42', st2: 'ok' },
@@ -102,7 +103,7 @@ export function PaymentsPage({ role }) {
       </div>
       <div className="ad-dash-grid" style={{ marginBottom: 14 }}>
         <Card title={t('payments.incomeDynamics')} action={<Segmented value={seg} onChange={setSeg} options={[{ id: 'income', label: t('payments.segIncome') }, { id: 'debt', label: t('payments.segDebt') }]} />}>
-          <AreaChart color="var(--sf-success)" data={SERIES} labels={MONTHS} />
+          <AreaChart color={seg === 'debt' ? 'var(--sf-danger)' : 'var(--sf-success)'} data={seg === 'debt' ? DEBT_SERIES : SERIES} labels={MONTHS} />
         </Card>
         <Card title={t('payments.methods')}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>

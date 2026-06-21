@@ -1,4 +1,4 @@
-import { cloneElement } from 'react';
+import { cloneElement, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icons } from '../components/Icons.jsx';
 import { Button, Card, PageHeader, SfAvatar } from '../components/primitives.jsx';
@@ -15,6 +15,17 @@ export function SettingsPage({ role }) {
   const { reset } = useStore();
   const a = useActions();
   const cfg = ROLE_CFG[role];
+
+  const [density, setDensity] = useState(() => {
+    try { return localStorage.getItem('sf-density') || 'dense'; } catch { return 'dense'; }
+  });
+  useEffect(() => {
+    document.documentElement.dataset.density = density;
+    try { localStorage.setItem('sf-density', density); } catch { /* ignore */ }
+  }, [density]);
+
+  // Informational rows open a read-only detail card instead of a dead chevron.
+  const info = (label, value) => a.open(label, { title: label, sub: t('settings.rowNote'), rows: [[label, value]] });
 
   const cycle = (list, value, set) => () => set(list[(list.indexOf(value) + 1) % list.length]);
   const resetDemo = () => {
@@ -38,7 +49,7 @@ export function SettingsPage({ role }) {
         [t('settings.rowTheme'), theme === 'dark' ? t('shell.dark') : t('shell.light'), toggleTheme],
         [t('settings.rowLanguage'), t('lang.' + i18n.resolvedLanguage), cycle(LANGUAGES, i18n.resolvedLanguage, i18n.changeLanguage)],
         [t('settings.rowCurrency'), `${cur} · ${t('settings.currencySwitches')}`, cycle(CURRENCIES, cur, setCur)],
-        [t('settings.rowDensity'), t('settings.valDense')],
+        [t('settings.rowDensity'), density === 'dense' ? t('settings.valDense') : t('settings.valComfortable'), () => setDensity((d) => (d === 'dense' ? 'comfortable' : 'dense'))],
       ],
     },
     {
@@ -80,13 +91,13 @@ export function SettingsPage({ role }) {
         {sections.map((sec, i) => (
           <Card key={i} title={sec.h} pad={false}>
             {sec.rows.map((r, j) => {
-              const interactive = typeof r[2] === 'function';
+              const handler = typeof r[2] === 'function' ? r[2] : () => info(r[0], r[1]);
               return (
                 <div
                   key={j}
                   className="ad-set-row"
-                  style={{ borderBottom: j < sec.rows.length - 1 ? '1px solid var(--sf-border)' : 'none', cursor: interactive ? 'pointer' : 'default' }}
-                  onClick={interactive ? r[2] : undefined}
+                  style={{ borderBottom: j < sec.rows.length - 1 ? '1px solid var(--sf-border)' : 'none', cursor: 'pointer' }}
+                  onClick={handler}
                 >
                   <span style={{ fontSize: 13 }}>{r[0]}</span>
                   <span style={{ fontSize: 12.5, color: 'var(--sf-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>

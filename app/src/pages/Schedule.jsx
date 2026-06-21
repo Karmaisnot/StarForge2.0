@@ -18,6 +18,12 @@ const LESSONS = [
   { key: '301-15:30', n: 'DTM', t: 'Malika Y.', c: 'var(--sf-accent)' },
 ];
 
+// Week view spreads the room schedule across teaching days (Mon–Sat). Each
+// lesson maps to a stable weekday by hashing its key, so the board is populated
+// and deterministic without per-lesson date data.
+const WEEKDAYS = [1, 2, 3, 4, 5, 6];
+const lessonDay = (l) => ([...l.key].reduce((a, c) => a + c.charCodeAt(0), 0) % 6) + 1;
+
 export function SchedulePage() {
   const { t } = useTranslation();
   const a = useActions();
@@ -52,6 +58,22 @@ export function SchedulePage() {
         }
       />
       <Card pad={false}>
+        {view === 'week' ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, padding: 12 }}>
+            {WEEKDAYS.map((wd) => (
+              <div key={wd} style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--sf-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center', paddingBottom: 6, borderBottom: '1px solid var(--sf-border)' }}>{t('common.wd' + wd)}</div>
+                {lessons.filter((l) => lessonDay(l) === wd).map((l) => (
+                  <button key={l.key} onClick={() => a.open(`${l.n} · ${l.t}`)} style={{ textAlign: 'left', background: l.c, color: '#FFFCF5', border: 'none', borderRadius: 8, padding: '7px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span className="sf-mono" style={{ fontSize: 9.5, opacity: 0.85 }}>{l.key.split('-')[1]} · {l.key.split('-')[0]}</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 700 }}>{l.n}</span>
+                    <span style={{ fontSize: 10, opacity: 0.85 }}>{l.t}</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : (
         <div className="ad-sched-grid" style={{ gridTemplateColumns: `64px repeat(${ROOMS.length}, 1fr)` }}>
           <div className="ad-sched-corner" />
           {ROOMS.map((r) => <div key={r} className="ad-sched-room">{t('schedule.room')} {r}</div>)}
@@ -74,6 +96,7 @@ export function SchedulePage() {
             </Fragment>
           ))}
         </div>
+        )}
       </Card>
     </>
   );

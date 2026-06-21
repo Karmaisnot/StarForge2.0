@@ -56,7 +56,14 @@
     "readOnly": "Faqat o‘qish",
     "auditMode": "Audit rejimi",
     "send": "Yuborish",
-    "of": "/"
+    "of": "/",
+    "wd1": "Du",
+    "wd2": "Se",
+    "wd3": "Cho",
+    "wd4": "Pa",
+    "wd5": "Ju",
+    "wd6": "Sha",
+    "wd7": "Ya"
   },
   "nav": {
     "dash": "Boshqaruv paneli",
@@ -166,7 +173,8 @@
     "opportunity": "Imkoniyat",
     "escalation": "eskal.",
     "opening": "Ochilmoqda",
-    "reviewState": "Nazoratda"
+    "reviewState": "Nazoratda",
+    "paused": "To‘xtatilgan"
   },
   "toast": {
     "saved": "Saqlandi",
@@ -259,6 +267,8 @@
     "actReport": "Hisobot",
     "actConfig": "Sozlash",
     "actPause": "To‘xtatish",
+    "actResume": "Davom ettirish",
+    "pauseConfirm": "Filialni vaqtincha to‘xtatishni tasdiqlaysizmi?",
     "newCardTitle": "Yangi filial ochish",
     "newCardSub": "Manzil, menejer, xonalar va guruhlarni sozlang",
     "comparison": "Filiallar taqqoslamasi",
@@ -566,6 +576,7 @@
     "rowLanguage": "Til",
     "rowCurrency": "Valyuta",
     "rowDensity": "Zichlik",
+    "rowNote": "Bu sozlama tashkilot darajasida boshqariladi.",
     "rowEmail": "Email hisobotlar",
     "rowCritical": "Kritik signallar",
     "rowWeekly": "Haftalik xulosa",
@@ -577,6 +588,7 @@
     "valYes": "Ha",
     "valSystem": "Tizim",
     "valDense": "Zich",
+    "valComfortable": "Bemalol",
     "valDaily": "Har kuni",
     "valImmediate": "Darhol",
     "valMonday": "Dushanba",

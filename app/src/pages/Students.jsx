@@ -45,6 +45,11 @@ export function StudentsPage({ role }) {
     return list;
   }, [students, query, chip]);
 
+  const PAGE_SIZE = 6;
+  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const pageRows = rows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
   const admit = () =>
     a.create({
       title: t('students.admit'),
@@ -106,12 +111,33 @@ export function StudentsPage({ role }) {
         right={<Segmented value={view} onChange={setView} options={[{ id: 'table', label: t('common.table') }, { id: 'card', label: t('common.card') }]} />}
       />
       <Card pad={false}>
+        {view === 'card' ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(244px, 1fr))', gap: 12, padding: 14 }}>
+            {pageRows.map((s) => (
+              <div key={s.id} onClick={() => a.open(s.n)} style={{ cursor: 'pointer', background: 'var(--sf-surface)', border: '1px solid var(--sf-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                  <SfAvatar name={s.n} size={38} />
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontWeight: 700, display: 'flex', gap: 5, alignItems: 'center' }}>{s.n}{s.risk && <Pill tone="danger">{t('status.risk')}</Pill>}</div>
+                    <div className="sf-mono" style={{ fontSize: 10, color: 'var(--sf-muted)' }}>DEMO-2026-{s.id} · {s.g}</div>
+                  </div>
+                  <button className="ad-row-del" title={t('common.reject')} onClick={(e) => { e.stopPropagation(); remove(s.id); }}>{cloneElement(Icons.x, { size: 14 })}</button>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <Pill tone={payTone[s.pay][0]}>{payTone[s.pay][1]}</Pill>
+                  <span className="sf-mono" style={{ fontWeight: 700, color: s.att >= 92 ? 'var(--sf-success)' : s.att >= 85 ? 'var(--sf-warn)' : 'var(--sf-danger)' }}>{s.att}%</span>
+                  {s.debt ? <Money uzs={s.debt} style={{ color: 'var(--sf-danger)', fontWeight: 700 }} /> : <span style={{ color: 'var(--sf-muted)', fontSize: 12 }}>—</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
         <DataTable cols={[
           { label: t('cols.student') }, { label: t('cols.group') }, ...(ceo ? [{ label: t('cols.branch') }] : []),
           { label: t('cols.attendance'), align: 'right' }, { label: t('cols.cards'), align: 'center' },
           { label: t('cols.payment'), align: 'center' }, { label: t('cols.debt'), align: 'right' }, { label: t('cols.parent') }, { label: '', align: 'right', w: 40 },
         ]}>
-          {rows.map((s) => (
+          {pageRows.map((s) => (
             <tr key={s.id} onClick={() => a.open(s.n)}>
               <td><div className="ad-cell-u">
                 <SfAvatar name={s.n} size={30} />
@@ -139,7 +165,8 @@ export function StudentsPage({ role }) {
             </tr>
           ))}
         </DataTable>
-        <Pagination label={`${rows.length ? 1 : 0}–${rows.length} ${t('common.of')} ${ceo ? '1 842' : '512'}`} page={page} pages={ceo ? 185 : 52} onPage={setPage} />
+        )}
+        <Pagination label={`${rows.length ? (safePage - 1) * PAGE_SIZE + 1 : 0}–${Math.min(safePage * PAGE_SIZE, rows.length)} ${t('common.of')} ${rows.length}`} page={safePage} pages={pageCount} onPage={setPage} />
       </Card>
     </>
   );

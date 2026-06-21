@@ -1,4 +1,4 @@
-import { cloneElement, useMemo, useState } from 'react';
+import { cloneElement, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icons } from '../components/Icons.jsx';
 import { Card, Pill, PageHeader, SfStar, SfAvatar } from '../components/primitives.jsx';
@@ -30,6 +30,9 @@ export function MessagesPage() {
   const [mode, setMode] = useState('msg');
   const [draft, setDraft] = useState('');
   const [log, setLog] = useState([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const [chatQuery, setChatQuery] = useState('');
+  const fileRef = useRef(null);
   const { items: threads, add, update } = useCollection('messages', THREADS, 'n');
 
   const tabs = [
@@ -38,6 +41,17 @@ export function MessagesPage() {
   ];
   const filtered = useMemo(() => (tab === 'all' ? threads : threads.filter((th) => th.cat === tab)), [threads, tab]);
   const cur = filtered[sel] || filtered[0] || threads[0];
+
+  // Visible conversation = seeded opener + anything sent this session, narrowed
+  // live by the in-thread search field.
+  const baseMsgs = [
+    { dir: 'in', text: `Assalomu alaykum! ${cur.grp ? 'Guruhga xush kelibsiz.' : 'Sizga bir savol bor edi.'}`, tm: '13:40' },
+    { dir: 'out', text: 'Va alaykum assalom! Albatta, eshitaman.', tm: '13:42' },
+    { dir: 'in', text: cur.last, tm: cur.tm },
+    ...log.filter((m) => m.to === cur.n).map((m) => ({ dir: 'out', text: m.text, tm: m.tm })),
+  ];
+  const chatQ = chatQuery.trim().toLowerCase();
+  const shownMsgs = chatQ ? baseMsgs.filter((m) => (m.text || '').toLowerCase().includes(chatQ)) : baseMsgs;
 
   const send = () => {
     if (!draft.trim() || !cur) return;
@@ -49,6 +63,28 @@ export function MessagesPage() {
     push({ tone: 'success', title: mode === 'task' ? t('toast.taskAssigned') : t('toast.messageSent'), desc: cur.n });
     setDraft('');
   };
+
+  // Attach a real file → posts it into the thread and notifies.
+  const onAttach = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !cur) return;
+    const tm = nowHM();
+    setLog((l) => [...l, { to: cur.n, text: `📎 ${file.name}`, tm }]);
+    update(cur.n, { last: `Siz: 📎 ${file.name}`, tm });
+    push({ tone: 'success', title: t('toast.sent'), desc: file.name });
+    e.target.value = '';
+  };
+
+  const showInfo = () =>
+    a.open(cur.n, {
+      icon: Icons.user,
+      title: cur.n,
+      sub: cur.g,
+      rows: [
+        [t('messages.profile'), cur.g],
+        [t('cols.status'), cur.on ? t('common.online') : t('status.no')],
+      ],
+    });
 
   const newChat = () =>
     a.create({
@@ -119,19 +155,26 @@ export function MessagesPage() {
               {cur.grp ? <div className="og2-grp-av" style={{ background: 'var(--sf-primary)', width: 38, height: 38 }}><SfStar size={17} color="#fff" /></div> : <SfAvatar name={cur.n} size={38} />}
               <div><div style={{ fontSize: 14, fontWeight: 700 }}>{cur.n}</div><div style={{ fontSize: 11, color: cur.on ? 'var(--sf-success)' : 'var(--sf-muted)' }}>{cur.on ? '● ' + t('common.online') : cur.g}</div></div>
             </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button className="ad-mini-btn" style={{ color: 'var(--sf-muted)' }} onClick={a.soon}>{cloneElement(Icons.search, { size: 15 })}</button>
-              <button className="ad-mini-btn" style={{ color: 'var(--sf-muted)' }} onClick={a.soon}>{cloneElement(Icons.more, { size: 15 })}</button>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              {showSearch && (
+                <input
+                  autoFocus
+                  value={chatQuery}
+                  onChange={(e) => setChatQuery(e.target.value)}
+                  placeholder={t('common.search')}
+                  style={{ border: '1px solid var(--sf-border)', borderRadius: 8, padding: '5px 9px', outline: 'none', fontFamily: 'inherit', fontSize: 12, color: 'var(--sf-ink)', background: 'var(--sf-surface)', width: 150 }}
+                />
+              )}
+              <button className="ad-mini-btn" style={{ color: showSearch ? 'var(--sf-primary)' : 'var(--sf-muted)' }} onClick={() => { setShowSearch((s) => !s); setChatQuery(''); }}>{cloneElement(Icons.search, { size: 15 })}</button>
+              <button className="ad-mini-btn" style={{ color: 'var(--sf-muted)' }} onClick={showInfo}>{cloneElement(Icons.more, { size: 15 })}</button>
             </div>
           </div>
           <div className="og2-chat-body">
             <div className="og2-day">{t('common.today')}</div>
-            <div className="og2-m in"><div className="og2-b in">Assalomu alaykum! {cur.grp ? 'Guruhga xush kelibsiz.' : 'Sizga bir savol bor edi.'}<div className="og2-bt">13:40</div></div></div>
-            <div className="og2-m out"><div className="og2-b out">Va alaykum assalom! Albatta, eshitaman.<div className="og2-bt" style={{ color: 'rgba(255,252,245,0.7)' }}>13:42</div></div></div>
-            <div className="og2-m in"><div className="og2-b in">{cur.last}<div className="og2-bt">{cur.tm}</div></div></div>
-            {log.filter((m) => m.to === cur.n).map((m, i) => (
-              <div key={i} className="og2-m out"><div className="og2-b out">{m.text}<div className="og2-bt" style={{ color: 'rgba(255,252,245,0.7)' }}>{m.tm}</div></div></div>
+            {shownMsgs.map((m, i) => (
+              <div key={i} className={'og2-m ' + m.dir}><div className={'og2-b ' + m.dir}>{m.text}<div className="og2-bt" style={m.dir === 'out' ? { color: 'rgba(255,252,245,0.7)' } : undefined}>{m.tm}</div></div></div>
             ))}
+            {chatQ && shownMsgs.length === 0 && <div className="og2-day" style={{ color: 'var(--sf-muted)' }}>—</div>}
           </div>
           <div className="og2-composer">
             <div className="og2-mode">
@@ -146,7 +189,8 @@ export function MessagesPage() {
               </div>
             )}
             <div className="og2-input-row">
-              <button className="ad-mini-btn" style={{ color: 'var(--sf-muted)' }} onClick={a.soon}>{cloneElement(Icons.attach, { size: 16 })}</button>
+              <input ref={fileRef} type="file" hidden onChange={onAttach} />
+              <button className="ad-mini-btn" style={{ color: 'var(--sf-muted)' }} onClick={() => fileRef.current?.click()}>{cloneElement(Icons.attach, { size: 16 })}</button>
               <input
                 className="og2-text"
                 style={{ border: 'none', outline: 'none', color: 'var(--sf-ink)', fontFamily: 'inherit' }}
