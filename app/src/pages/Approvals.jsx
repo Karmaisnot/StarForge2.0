@@ -4,7 +4,6 @@ import { Icons } from '../components/Icons.jsx';
 import { Button, Card, Money, PageHeader } from '../components/primitives.jsx';
 import { useActions } from '../hooks/useActions.jsx';
 import { useCollection } from '../context/StoreContext.jsx';
-import { APPROVALS } from '../data/seeds.js';
 
 const KIND_ICON = {
   refund: Icons.trend, salary: Icons.trend, buy: Icons.trend,
@@ -14,7 +13,13 @@ const KIND_ICON = {
 export function ApprovalsPage() {
   const { t } = useTranslation();
   const a = useActions();
-  const { items, remove } = useCollection('approvals', APPROVALS, 'id');
+  const { items, remove } = useCollection('approvals');
+  const { items: history, add: addHistory } = useCollection('approvalHistory');
+
+  const process = (it, result) => {
+    addHistory({ ...it, result, id: it.id });
+    remove(it.id);
+  };
 
   return (
     <>
@@ -24,8 +29,28 @@ export function ApprovalsPage() {
         sub={`${items.length} ${t('approvals.pending')}`}
         right={
           <>
-            <Button kind="soft" onClick={() => a.open(t('approvals.viewAll'))}>{t('approvals.viewAll')}</Button>
-            <Button kind="primary" onClick={() => a.open(t('common.history'))}>{t('common.history')}</Button>
+            <Button
+              kind="soft"
+              onClick={() => a.open(t('approvals.viewAll'), {
+                title: t('approvals.viewAll'),
+                icon: Icons.check,
+                rows: items.map((it) => [`${it.t} · ${it.who}`, it.sub]),
+              })}
+            >
+              {t('approvals.viewAll')}
+            </Button>
+            <Button
+              kind="primary"
+              onClick={() => a.open(t('common.history'), {
+                title: t('common.history'),
+                icon: Icons.doc,
+                rows: history.length
+                  ? history.map((h) => [`${h.t} · ${h.who}`, h.result === 'approved' ? t('approvals.statusApproved') : t('approvals.statusRejected')])
+                  : [[t('approvals.historyEmpty'), '']],
+              })}
+            >
+              {t('common.history')}
+            </Button>
           </>
         }
       />
@@ -47,8 +72,8 @@ export function ApprovalsPage() {
               <div className="ad-apc-foot">
                 <span className="ad-apc-by">{t('approvals.requestedBy')}: <b>{it.by}</b></span>
                 <div className="ad-apc-acts">
-                  <button className="ad-btn ad-btn-soft" onClick={() => a.reject(it.who, { onConfirm: () => remove(it.id) })}>{cloneElement(Icons.x, { size: 13 })} {t('common.reject')}</button>
-                  <button className="ad-btn ad-btn-primary" onClick={() => a.approve(it.who, { onConfirm: () => remove(it.id) })}>{cloneElement(Icons.check, { size: 13 })} {t('common.approve')}</button>
+                  <button className="ad-btn ad-btn-soft" onClick={() => a.reject(it.who, { onConfirm: () => process(it, 'rejected') })}>{cloneElement(Icons.x, { size: 13 })} {t('common.reject')}</button>
+                  <button className="ad-btn ad-btn-primary" onClick={() => a.approve(it.who, { onConfirm: () => process(it, 'approved') })}>{cloneElement(Icons.check, { size: 13 })} {t('common.approve')}</button>
                 </div>
               </div>
             </div>

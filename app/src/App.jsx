@@ -4,6 +4,7 @@ import { PAGES } from './pages/registry.js';
 import { ROLE_CFG } from './config/roles.js';
 import { resolveRole } from './config/resolveRole.js';
 import { useHashRoute } from './hooks/useHashRoute.js';
+import { ScopeProvider } from './context/ScopeContext.jsx';
 
 export default function App() {
   const role = useMemo(resolveRole, []);
@@ -16,8 +17,10 @@ export default function App() {
   const Page = PAGES[routeId] || PAGES[fallback];
 
   return (
-    <Shell cfg={cfg} active={routeId} onNav={navigate}>
-      <Page role={role} onNav={navigate} />
-    </Shell>
+    <ScopeProvider role={role} defaultBranch={cfg.defaultBranch}>
+      <Shell cfg={cfg} active={routeId} onNav={navigate}>
+        <Page role={role} onNav={navigate} />
+      </Shell>
+    </ScopeProvider>
   );
 }

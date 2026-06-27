@@ -33,14 +33,23 @@ const MODULES = [
 ];
 
 const PERM_LEVELS = ['none', 'view', 'edit', 'full'];
+const PERSIST_KEY = 'sf-permissions';
+const loadSaved = () => {
+  try {
+    return JSON.parse(localStorage.getItem(PERSIST_KEY) || 'null');
+  } catch {
+    return null;
+  }
+};
 
 export function PermissionsPage() {
   const { t } = useTranslation();
   const a = useActions();
   const { push } = useToast();
+  const saved = loadSaved();
   const [sel, setSel] = useState('methodist');
-  const [roles, setRoles] = useState(ROLES);
-  const [edits, setEdits] = useState({}); // `${roleId}:${moduleKey}` -> level
+  const [roles, setRoles] = useState(() => saved?.roles || ROLES);
+  const [edits, setEdits] = useState(() => saved?.edits || {}); // `${roleId}:${moduleKey}` -> level
 
   const lvl = {
     none: [t('permissions.lvlNone'), 'var(--sf-muted-2)', 'var(--sf-surface-2)'],
@@ -61,7 +70,16 @@ export function PermissionsPage() {
     const next = PERM_LEVELS[(PERM_LEVELS.indexOf(permOf(mod)) + 1) % PERM_LEVELS.length];
     setEdits((e) => ({ ...e, [`${sel}:${mod.key}`]: next }));
   };
-  const savePerms = () => push({ tone: 'success', title: t('toast.saved'), desc: roleName(cur) });
+  // Commit the in-memory role + permission edits to localStorage so they survive
+  // a reload — the Save button now genuinely persists.
+  const savePerms = () => {
+    try {
+      localStorage.setItem(PERSIST_KEY, JSON.stringify({ roles, edits }));
+    } catch {
+      /* storage unavailable — keep in-memory */
+    }
+    push({ tone: 'success', title: t('toast.saved'), desc: roleName(cur) });
+  };
 
   // Clone the current role — permissions and all — into a new editable role.
   const copyRole = () => {

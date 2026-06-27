@@ -5,7 +5,9 @@ import { Button, Card, Money, Pill, PageHeader, SfStar, SfAvatar } from '../comp
 import { FilterBar } from '../components/common.jsx';
 import { useActions } from '../hooks/useActions.jsx';
 import { useCollection } from '../context/StoreContext.jsx';
-import { GROUPS } from '../data/seeds.js';
+import { useScope } from '../context/ScopeContext.jsx';
+import { groupMetrics } from '../lib/metrics.js';
+import { fmtMoney } from '../lib/format.js';
 
 const BRANCH_NAMES = ['Yunusobod', 'Chilonzor', 'Mirobod', 'Sebzor'];
 
@@ -15,17 +17,20 @@ export function GroupsPage({ role }) {
   const ceo = role === 'ceo';
   const [query, setQuery] = useState('');
   const [chip, setChip] = useState(0);
-  const { items: allGroups, add } = useCollection('groups', GROUPS, 'n');
+  const { items: allGroups, add } = useCollection('groups');
+  const { scopeBranch } = useScope();
+  const base = useMemo(() => scopeBranch(allGroups), [scopeBranch, allGroups]);
+  const m = useMemo(() => groupMetrics(base), [base]);
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let list = allGroups;
+    let list = base;
     if (q) list = list.filter((g) => `${g.n} ${g.t}`.toLowerCase().includes(q));
     if (chip === 1) list = list.filter((g) => g.st > 0);
     if (chip === 2) list = list.filter((g) => g.st >= g.cap * 0.9);
     if (chip === 3) list = list.filter((g) => g.st < g.cap);
     return list;
-  }, [allGroups, query, chip]);
+  }, [base, query, chip]);
 
   const addGroup = () =>
     a.create({
@@ -52,16 +57,16 @@ export function GroupsPage({ role }) {
     });
 
   const chips = [
-    { l: t('common.all'), n: ceo ? 96 : 28, on: chip === 0 },
-    { l: t('status.active'), icon: Icons.check, on: chip === 1 },
-    { l: t('groups.chipFull'), n: 12, on: chip === 2 },
-    { l: t('groups.chipFreeSeats'), n: 18, on: chip === 3 },
+    { l: t('common.all'), n: m.total, on: chip === 0 },
+    { l: t('status.active'), n: m.active, icon: Icons.check, on: chip === 1 },
+    { l: t('groups.chipFull'), n: m.full, on: chip === 2 },
+    { l: t('groups.chipFreeSeats'), n: m.freeSeats, on: chip === 3 },
   ];
 
   return (
     <>
       <PageHeader
-        eyebrow={ceo ? `96 ${t('shell.studentsWord')}` : t('roles.managerScope')}
+        eyebrow={ceo ? `${m.total} ${t('shell.studentsWord')}` : t('roles.managerScope')}
         title={t('nav.groups')}
         sub={ceo ? t('groups.subCeo') : t('groups.subManager')}
         right={<Button kind="primary" onClick={addGroup}>{cloneElement(Icons.plus, { size: 14 })} {t('dash.newGroup')}</Button>}
@@ -75,7 +80,24 @@ export function GroupsPage({ role }) {
       />
       <div className="ad-groups-grid">
         {groups.map((g) => (
-          <Card key={g.n} pad={false} className="ad-group-card">
+          <div
+            key={g.n}
+            style={{ cursor: 'pointer' }}
+            onClick={() => a.open(g.n, {
+              title: g.n,
+              sub: g.t,
+              icon: Icons.brand,
+              rows: [
+                [t('cols.teacher'), g.t],
+                [t('cols.branch'), g.b],
+                [t('cols.capacity'), g.st + '/' + g.cap],
+                [t('cols.attendance'), g.att + '%'],
+                [t('cols.schedule'), g.sch],
+                [t('cols.fee'), fmtMoney(g.fee, 'UZS')],
+              ],
+            })}
+          >
+          <Card pad={false} className="ad-group-card">
             <div className="ad-gc-head">
               <div className="ad-gc-mark" style={{ background: g.tone }}><SfStar size={18} color="#FFFCF5" /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -96,6 +118,7 @@ export function GroupsPage({ role }) {
               <div className="ad-gc-meta-i">{cloneElement(Icons.trend, { size: 12 })} <Money uzs={g.fee} />{t('common.perMonth')}</div>
             </div>
           </Card>
+          </div>
         ))}
       </div>
     </>

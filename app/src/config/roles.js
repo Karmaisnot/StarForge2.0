@@ -1,13 +1,9 @@
 import { Icons } from '../components/Icons.jsx';
 
-// Branch directory. Names are proper nouns; counts drive the subtitle.
-export const BRANCHES = [
-  { id: 'all', name: '__ALL__', students: 1842, branches: 4 },
-  { id: 'yun', name: 'Yunusobod', students: 512 },
-  { id: 'chl', name: 'Chilonzor', students: 486 },
-  { id: 'mir', name: 'Mirobod', students: 478 },
-  { id: 'seb', name: 'Sebzor', students: 366 },
-];
+// Branch directory with live student counts (single source of truth in the
+// dataset). Re-exported here for back-compat; the sidebar reads it via the
+// scope context.
+export { BRANCH_SWITCHER as BRANCHES } from '../data/dataset.js';
 
 // A navigation entry. `labelKey`/`grpKey` resolve through i18n at render time,
 // so switching language re-labels the whole shell without rebuilding config.

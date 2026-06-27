@@ -4,6 +4,7 @@ import { useToast } from '../context/ToastContext.jsx';
 import { useModal } from '../context/ModalContext.jsx';
 import { ConfirmModal, DetailsModal, FormModal } from '../components/dialogs.jsx';
 import { Icons } from '../components/Icons.jsx';
+import { exportRows, downloadReport } from '../lib/export.js';
 
 // Single source of truth for the write-actions shared across every page. Each
 // handler opens a real dialog (confirm / form / details) and only fires the
@@ -22,6 +23,9 @@ export function useActions() {
     // Guards callers wired as `onClick={a.approve}`, where the click event —
     // not a name — arrives as the argument.
     const named = (v) => (typeof v === 'string' ? v : undefined);
+    // Same guard for option objects: a bare `onClick={a.exportData}` passes a
+    // synthetic event, which we treat as "no options".
+    const opts = (o) => (o && typeof o === 'object' && !o.nativeEvent && !o.target ? o : {});
 
     return {
       // ---- Forms (create / edit / compose) ----
@@ -111,43 +115,61 @@ export function useActions() {
           />
         )),
 
-      exportData: (o = {}) =>
-        open(({ close }) => (
+      // Real export: builds the chosen file in-browser from the page's columns
+      // + rows and downloads it. `o.rows` is the current (filtered) view;
+      // `o.allRows` the unfiltered set, so the scope selector is meaningful.
+      exportData: (raw = {}) => {
+        const o = opts(raw);
+        return open(({ close }) => (
           <FormModal
             close={close}
             icon={Icons.download}
-            title={t('ui.exportTitle')}
-            sub={t('ui.exportSub')}
+            title={o.title || t('ui.exportTitle')}
+            sub={o.sub || t('ui.exportSub')}
             submitLabel={t('common.export')}
             fields={
               o.fields || [
-                { name: 'format', label: t('ui.format'), type: 'select', options: ['XLSX', 'CSV', 'PDF'] },
+                { name: 'format', label: t('ui.format'), type: 'select', options: ['XLSX', 'CSV', 'JSON'] },
                 { name: 'scope', label: t('ui.scope'), type: 'select', options: [t('ui.scopeAll'), t('ui.scopeFiltered')] },
               ]
             }
             onSubmit={(v) => {
+              const filtered = v.scope === t('ui.scopeFiltered');
+              const rows = filtered ? o.rows || [] : o.allRows || o.rows || [];
+              const columns = o.columns || [];
+              const filename = columns.length && rows.length
+                ? exportRows({ format: v.format, name: o.name || t('ui.exportTitle'), columns, rows })
+                : null;
               o.onSubmit?.(v);
-              toast('info', t('toast.exported'), `${v.format} · ${v.scope}`);
+              toast('info', t('toast.exported'), filename || `${v.format} · ${v.scope}`);
             }}
           />
-        )),
+        ));
+      },
 
       // ---- Confirmations ---- (each runs the page's real mutation, then toasts)
-      report: (o = {}) =>
-        open(({ close }) => (
+      // Real report: confirms, then downloads a self-contained HTML report built
+      // from `o.sections` / `o.table`.
+      report: (raw = {}) => {
+        const o = opts(raw);
+        return open(({ close }) => (
           <ConfirmModal
             close={close}
             icon={Icons.doc}
             tone="primary"
-            title={t('toast.report')}
-            message={t('toast.reportDesc')}
+            title={o.title || t('toast.report')}
+            message={o.message || t('toast.reportDesc')}
             confirmLabel={t('common.report')}
             onConfirm={() => {
+              const filename = o.sections || o.table
+                ? downloadReport({ title: o.title || t('toast.report'), subtitle: o.subtitle, sections: o.sections, table: o.table })
+                : null;
               o.onConfirm?.();
-              toast('info', t('toast.report'), t('toast.reportDesc'));
+              toast('info', t('toast.report'), filename || t('toast.reportDesc'));
             }}
           />
-        )),
+        ));
+      },
 
       // Generic confirmation — pages pass their own copy and mutation. The
       // approve/reject/flag handlers above are pre-styled specialisations; this

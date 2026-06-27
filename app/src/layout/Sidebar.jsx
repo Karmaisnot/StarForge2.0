@@ -5,6 +5,7 @@ import { SfStar, SfAvatar } from '../components/primitives.jsx';
 import { groupNav } from '../config/roles.js';
 import { fmtCount } from '../lib/format.js';
 import { usePopover } from '../hooks/useOutsideClick.js';
+import { useNavBadges } from '../hooks/useNavBadges.js';
 
 function branchLabel(b, t) {
   if (b.id === 'all') return t('shell.allBranches');
@@ -19,8 +20,9 @@ export function Sidebar({ cfg, active, onNav, branches, branch, onBranch, open, 
   const { t } = useTranslation();
   const pop = usePopover(false);
   const groups = groupNav(cfg.nav);
+  const badges = useNavBadges();
   const curBranch = branches.find((b) => b.id === branch) || branches[0];
-  const options = cfg.role === 'manager' ? branches.slice(1, 2) : branches;
+  const options = branches;
 
   return (
     <aside className={'ad-side' + (open ? ' open' : '')}>
@@ -78,6 +80,7 @@ export function Sidebar({ cfg, active, onNav, branches, branch, onBranch, open, 
             <div className="ad-nav-grp-l">{t('navGroups.' + g.grpKey)}</div>
             {g.items.map((item) => {
               const on = active === item.id;
+              const badge = badges[item.id] ?? item.n;
               return (
                 <button
                   key={item.id}
@@ -92,12 +95,12 @@ export function Sidebar({ cfg, active, onNav, branches, branch, onBranch, open, 
                     {cloneElement(item.icon, { size: 17 })}
                   </span>
                   <span className="ad-nav-l">{t(item.labelKey)}</span>
-                  {item.n != null && (
+                  {badge != null && (
                     <span
                       className={'ad-nav-n' + (item.accent ? ' acc' : '')}
                       style={item.accent ? { background: item.accent } : undefined}
                     >
-                      {fmtCount(item.n)}
+                      {fmtCount(badge)}
                     </span>
                   )}
                 </button>

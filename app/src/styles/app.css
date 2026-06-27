@@ -132,6 +132,15 @@ button { font-family: inherit; color: inherit; }
 .ad-cur-opt.on { background: var(--sf-surface-2); }
 .ad-cur-sym { flex: 1; color: var(--sf-muted); font-size: 12px; }
 .ad-cur-note { padding: 8px 10px 4px; font-size: 9.5px; color: var(--sf-muted); border-top: 1px solid var(--sf-border); margin-top: 4px; }
+.ad-top-search-wrap { position: relative; flex: 1; max-width: 420px; margin-left: auto; }
+.ad-top-search-wrap .ad-top-search { margin-left: 0; max-width: none; width: 100%; }
+.ad-search-menu { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--sf-surface); border: 1px solid var(--sf-border); border-radius: 12px; box-shadow: var(--sf-shadow-lg); z-index: 40; padding: 6px; max-height: 380px; overflow: auto; }
+.ad-search-res { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; background: none; border: none; width: 100%; font-family: inherit; }
+.ad-search-res:hover { background: var(--sf-surface-2); }
+.ad-search-res-n { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ad-search-res-s { font-size: 10.5px; color: var(--sf-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ad-search-res-tag { font-size: 10px; color: var(--sf-muted); background: var(--sf-surface-2); border: 1px solid var(--sf-border); padding: 2px 7px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+.ad-search-empty { padding: 14px; text-align: center; font-size: 12px; color: var(--sf-muted); }
 .ad-top-ic { width: 36px; height: 36px; border-radius: 9px; background: transparent; border: none; cursor: pointer; color: var(--sf-ink-2); display: flex; align-items: center; justify-content: center; position: relative; }
 .ad-top-ic:hover { background: var(--sf-surface-2); }
 .ad-top-dot { position: absolute; top: 8px; right: 9px; width: 7px; height: 7px; border-radius: 50%; background: var(--sf-danger); border: 2px solid var(--sf-surface); }
@@ -210,7 +219,7 @@ button { font-family: inherit; color: inherit; }
   .ad-side-x { display: block; margin-left: auto; }
   .ad-scrim { position: fixed; inset: 0; background: rgba(20,16,11,0.55); z-index: 50; }
   .ad-burger { display: flex; }
-  .ad-top-search { display: none; }
+  .ad-top-search, .ad-top-search-wrap { display: none; }
   .ad-main { padding: 16px 14px 80px; }
   .ad-page-title { font-size: 24px; }
 }

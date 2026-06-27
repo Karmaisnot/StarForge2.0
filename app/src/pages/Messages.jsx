@@ -11,16 +11,6 @@ const nowHM = () => {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
 
-const THREADS = [
-  { n: 'Nigora Karimova', g: 'O‘qituvchi · Matematika', last: 'Ertangi yig‘ilishga tayyorman', tm: '14:42', un: 0, on: true, cat: 'teachers' },
-  { n: 'Matematika bo‘limi', g: 'Guruh · 12 a‘zo', last: 'Siz: Yangi mavzular ro‘yxati...', tm: '13:20', un: 0, grp: true, cat: 'staff' },
-  { n: 'Akbarova Dilnoza', g: 'Ota-ona · Akmal · 9-B', last: 'Rahmat ustoz!', tm: '12:18', un: 2, cat: 'parents' },
-  { n: 'Aziz Tursunov', g: 'O‘qituvchi · Ingliz', last: 'Yangi guruh ochsak bo‘ladimi?', tm: '11:05', un: 1, on: true, cat: 'teachers' },
-  { n: 'Halimova Zilola', g: 'O‘quvchi · 9-B', last: 'Uy ishini yubordim', tm: 'Du', un: 0, cat: 'students' },
-  { n: 'Qabul bo‘limi', g: 'Guruh · 8 a‘zo', last: 'Bugun 6 ta yangi lid', tm: 'Du', un: 3, grp: true, cat: 'staff' },
-  { n: 'Eshmatova Gulnora', g: 'Ota-ona · Otabek', last: 'To‘lov haqida savol', tm: 'Du', un: 0, cat: 'parents', flag: true },
-];
-
 export function MessagesPage() {
   const { t } = useTranslation();
   const { push } = useToast();
@@ -33,14 +23,20 @@ export function MessagesPage() {
   const [showSearch, setShowSearch] = useState(false);
   const [chatQuery, setChatQuery] = useState('');
   const fileRef = useRef(null);
-  const { items: threads, add, update } = useCollection('messages', THREADS, 'n');
+  const { items: threads, add, update } = useCollection('messages');
 
+  const tabCount = (id) => (id === 'all' ? threads.length : threads.filter((th) => th.cat === id).length);
   const tabs = [
-    ['all', t('messages.tabAll'), 92], ['staff', t('messages.tabStaff'), 24],
-    ['teachers', t('messages.tabTeachers'), 16], ['parents', t('messages.tabParents'), 38], ['students', t('messages.tabStudents'), 14],
+    ['all', t('messages.tabAll'), tabCount('all')], ['staff', t('messages.tabStaff'), tabCount('staff')],
+    ['teachers', t('messages.tabTeachers'), tabCount('teachers')], ['parents', t('messages.tabParents'), tabCount('parents')], ['students', t('messages.tabStudents'), tabCount('students')],
   ];
   const filtered = useMemo(() => (tab === 'all' ? threads : threads.filter((th) => th.cat === tab)), [threads, tab]);
   const cur = filtered[sel] || filtered[0] || threads[0];
+
+  // No conversation to show yet (e.g. threads still loading from the server).
+  if (!cur) {
+    return <PageHeader eyebrow={t('messages.eyebrow')} title={t('messages.title')} sub={t('messages.sub')} />;
+  }
 
   // Visible conversation = seeded opener + anything sent this session, narrowed
   // live by the in-thread search field.
@@ -108,7 +104,7 @@ export function MessagesPage() {
 
   const quickActions = [
     [t('messages.qaTask'), Icons.check, 'var(--sf-primary)', a.task],
-    [t('messages.qaMeeting'), Icons.cal, 'var(--sf-accent)', () => a.open(t('messages.qaMeeting'))],
+    [t('messages.qaMeeting'), Icons.cal, 'var(--sf-accent)', () => a.create({ title: t('messages.qaMeeting'), fields: [{ name: 'topic', label: t('meetings.topic'), required: true }, { name: 'time', label: t('meetings.timeLabel') }] })],
     [t('messages.qaBroadcast'), Icons.bell, 'var(--sf-warn)', a.send],
     [t('messages.qaDept'), Icons.folder, 'var(--sf-success)', a.send],
   ];

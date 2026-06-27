@@ -1,4 +1,4 @@
-import { cloneElement, useState } from 'react';
+import { cloneElement, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icons } from '../components/Icons.jsx';
 import { Button, Card, Money, Pill, Bar, PageHeader, SfAvatar, SfAiBadge } from '../components/primitives.jsx';
@@ -6,17 +6,12 @@ import { Kpi, AreaChart, HBars, Donut, Legend } from '../components/charts.jsx';
 import { DataTable, Segmented } from '../components/common.jsx';
 import { useActions } from '../hooks/useActions.jsx';
 import { useCollection } from '../context/StoreContext.jsx';
-import { GROUPS, BRANCHES, APPROVALS } from '../data/seeds.js';
+import { useScope } from '../context/ScopeContext.jsx';
+import { studentMetrics, branchMetrics, trendSeries } from '../lib/metrics.js';
+import { fmtMoney } from '../lib/format.js';
 
 const MONTHS = ['Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek', 'Yan', 'Fev', 'Mar', 'Apr', 'May'];
-const REV_SERIES = [820, 860, 910, 890, 960, 1020, 1080, 1040, 1140, 1180, 1220, 1284].map((x) => x * 1e6);
-
-const TEACHERS = [
-  { n: 'Nigora Karimova', b: 'Yunusobod', g: 3, att: 94, up: 18, down: 4, r: 4.9 },
-  { n: 'Aziz Tursunov', b: 'Chilonzor', g: 4, att: 92, up: 22, down: 2, r: 4.8 },
-  { n: 'Malika Yusupova', b: 'Mirobod', g: 3, att: 88, up: 12, down: 6, r: 4.5 },
-  { n: 'Bobur Aliyev', b: 'Yunusobod', g: 4, att: 90, up: 15, down: 3, r: 4.6 },
-];
+const BAR_TONES = ['var(--sf-primary)', 'var(--sf-primary)', 'var(--sf-accent)', 'var(--sf-ink-2)'];
 
 const EVENTS = [
   { t: 'Yangi to‘lov · 1.2 mln', who: 'Chilonzor', icon: Icons.trend, c: 'var(--sf-success)', tm: '2 daq' },
@@ -30,13 +25,32 @@ export function DashboardPage({ role, onNav }) {
   const a = useActions();
   const ceo = role === 'ceo';
   const [range, setRange] = useState('12');
-  const rev = ceo ? 1284000000 : 342000000;
+  const { scopeBranch, isAll } = useScope();
 
   // Seed/read the same collections the full pages use, so creating here shows up
   // there too — and the approvals widget reflects (and mutates) real requests.
-  const { add: addGroup } = useCollection('groups', GROUPS, 'n');
-  const { add: addBranch } = useCollection('branches', BRANCHES, 'n');
-  const { items: approvals, remove: removeApproval } = useCollection('approvals', APPROVALS, 'id');
+  const { items: studentsAll } = useCollection('students');
+  const { items: branchesAll, add: addBranch } = useCollection('branches');
+  const { items: teachersAll } = useCollection('teachers');
+  const { add: addGroup } = useCollection('groups');
+  const { items: approvals, remove: removeApproval } = useCollection('approvals');
+
+  // Scope the live collections to the active branch (CEO sees the aggregate), then
+  // derive every KPI from the metrics so the headline numbers stay truthful.
+  const students = useMemo(() => scopeBranch(studentsAll), [scopeBranch, studentsAll]);
+  const branches = useMemo(() => (isAll ? branchesAll : scopeBranch(branchesAll, 'n')), [isAll, scopeBranch, branchesAll]);
+  const sm = studentMetrics(students);
+  const bm = branchMetrics(branches);
+  const rev = bm.revenue;
+  const activeBranches = useMemo(() => branches.filter((b) => b.status === 'active'), [branches]);
+  const churn = activeBranches.length
+    ? Math.round((activeBranches.reduce((s, b) => s + b.churn, 0) / activeBranches.length) * 10) / 10
+    : 0;
+  const revSpark = useMemo(() => trendSeries(rev), [rev]);
+  const topTeachers = useMemo(() => [...scopeBranch(teachersAll)].sort((a, b) => b.r - a.r).slice(0, 4), [scopeBranch, teachersAll]);
+  // Student flow buckets, all real counts off the scoped collection.
+  const flowNew = useMemo(() => students.filter((s) => s.att >= 95 && s.debt === 0).length, [students]);
+  const flowPct = (n) => (sm.total ? Math.round((n / sm.total) * 100) : 0);
 
   const createEntity = () =>
     ceo
@@ -59,6 +73,29 @@ export function DashboardPage({ role, onNav }) {
           onSubmit: (v) => addGroup({ n: v.name, t: v.teacher || '—', b: 'Yunusobod', st: 0, cap: 20, att: 100, sch: '—', fee: 600000, tone: 'var(--sf-primary)' }),
         });
 
+  const runReport = () =>
+    a.report({
+      title: t('common.report'),
+      subtitle: ceo ? t('dash.titleCeo') : t('dash.titleManager'),
+      sections: [
+        {
+          heading: t('nav.students'),
+          rows: [
+            [t('students.kpiTotal'), sm.total],
+            [t('students.kpiActive'), sm.active],
+            [t('cols.attendance'), sm.avgAtt + '%'],
+          ],
+        },
+        {
+          heading: t('dash.kpiRevenue'),
+          rows: [
+            [t('dash.kpiRevenue'), fmtMoney(bm.revenue, 'UZS')],
+            [t('dash.kpiDebt'), fmtMoney(sm.debtSum, 'UZS')],
+          ],
+        },
+      ],
+    });
+
   return (
     <>
       <PageHeader
@@ -67,22 +104,22 @@ export function DashboardPage({ role, onNav }) {
         sub={ceo ? t('dash.subCeo') : t('dash.subManager')}
         right={
           <>
-            <Button kind="soft" onClick={a.report}>{cloneElement(Icons.download, { size: 14 })} {t('common.report')}</Button>
+            <Button kind="soft" onClick={runReport}>{cloneElement(Icons.download, { size: 14 })} {t('common.report')}</Button>
             <Button kind="primary" onClick={createEntity}>{cloneElement(Icons.plus, { size: 14 })} {ceo ? t('dash.newBranch') : t('dash.newGroup')}</Button>
           </>
         }
       />
 
       <div className="ad-kpi-grid">
-        <Kpi label={t('dash.kpiRevenue')} money={rev} accent="var(--sf-success)" trend={{ up: true, v: '12.4%' }} spark={[60, 64, 62, 70, 68, 76, 80, 78, 86, 90, 94, 100].map((x) => x * (rev / 100))} icon={Icons.trend} />
-        <Kpi label={ceo ? t('dash.kpiStudents') : t('dash.kpiActiveStudents')} value={ceo ? '1 842' : '512'} trend={{ up: true, v: '4.1%' }} spark={[70, 72, 74, 73, 78, 82, 85, 88, 90, 92, 96, 100]} icon={Icons.cohort} />
-        <Kpi label={t('dash.kpiAttendance')} value="91.2%" accent="var(--sf-primary)" trend={{ up: true, v: '0.8%' }} spark={[88, 90, 87, 91, 89, 92, 90, 93, 91, 92, 90, 91]} icon={Icons.check} />
-        <Kpi label={t('dash.kpiChurn')} value="3.4%" accent="var(--sf-danger)" trend={{ up: false, v: '0.6%' }} sub={t('dash.churnTarget')} icon={Icons.trend} />
-        <Kpi label={t('dash.kpiDebt')} money={ceo ? 84000000 : 22400000} accent="var(--sf-warn)" sub={ceo ? t('dash.debtFamiliesCeo') : t('dash.debtFamiliesManager')} icon={Icons.flag} />
+        <Kpi label={t('dash.kpiRevenue')} money={rev} accent="var(--sf-success)" trend={{ up: true, v: '12.4%' }} spark={revSpark} icon={Icons.trend} />
+        <Kpi label={ceo ? t('dash.kpiStudents') : t('dash.kpiActiveStudents')} value={(ceo ? sm.total : sm.active).toLocaleString('ru-RU')} trend={{ up: true, v: '4.1%' }} spark={[70, 72, 74, 73, 78, 82, 85, 88, 90, 92, 96, 100]} icon={Icons.cohort} />
+        <Kpi label={t('dash.kpiAttendance')} value={sm.avgAtt + '%'} accent="var(--sf-primary)" trend={{ up: true, v: '0.8%' }} spark={[88, 90, 87, 91, 89, 92, 90, 93, 91, 92, 90, 91]} icon={Icons.check} />
+        <Kpi label={t('dash.kpiChurn')} value={churn + '%'} accent="var(--sf-danger)" trend={{ up: false, v: '0.6%' }} sub={t('dash.churnTarget')} icon={Icons.trend} />
+        <Kpi label={t('dash.kpiDebt')} money={sm.debtSum} accent="var(--sf-warn)" sub={ceo ? t('dash.debtFamiliesCeo') : t('dash.debtFamiliesManager')} icon={Icons.flag} />
         {ceo ? (
           <Kpi label={t('dash.kpiNps')} value="72" accent="var(--sf-accent)" trend={{ up: true, v: '5' }} sub={t('dash.npsSub')} icon={Icons.star} />
         ) : (
-          <Kpi label={t('dash.kpiPending')} value="7" accent="var(--sf-warn)" sub={t('dash.pendingSub')} icon={Icons.check} />
+          <Kpi label={t('dash.kpiPending')} value={String(approvals.length)} accent="var(--sf-warn)" sub={t('dash.pendingSub')} icon={Icons.check} />
         )}
       </div>
 
@@ -92,7 +129,7 @@ export function DashboardPage({ role, onNav }) {
             title={ceo ? t('dash.revDynamicsCeo') : t('dash.revDynamicsManager')}
             action={<Segmented value={range} onChange={setRange} options={[{ id: '12', label: t('common.m12') }, { id: '6', label: t('common.m6') }, { id: 'ytd', label: t('common.ytd') }]} />}
           >
-            <AreaChart color="var(--sf-success)" data={REV_SERIES} labels={MONTHS} />
+            <AreaChart color="var(--sf-success)" data={revSpark} labels={MONTHS} />
             <div className="ad-chart-foot">
               <div><span className="ad-cf-l">{t('dash.yearForecast')}</span><Money uzs={rev * 12.4} className="ad-cf-v" /></div>
               <div><span className="ad-cf-l">{t('dash.avgCheck')}</span><Money uzs={680000} className="ad-cf-v" /></div>
@@ -102,12 +139,9 @@ export function DashboardPage({ role, onNav }) {
 
           {ceo ? (
             <Card title={t('dash.branchesRating')} action={<a className="ad-link" onClick={() => onNav('branches')}>{t('common.detail')} ›</a>}>
-              <HBars money rows={[
-                { label: 'Yunusobod', v: 342000000, mark: true, color: 'var(--sf-primary)' },
-                { label: 'Chilonzor', v: 318000000, mark: true, color: 'var(--sf-primary)' },
-                { label: 'Mirobod', v: 308000000, mark: true, color: 'var(--sf-accent)' },
-                { label: 'Sebzor', v: 216000000, mark: true, color: 'var(--sf-ink-2)' },
-              ]} />
+              <HBars money rows={[...activeBranches]
+                .sort((x, y) => y.rev - x.rev)
+                .map((b, i) => ({ label: b.n, v: b.rev, mark: true, color: BAR_TONES[i] || 'var(--sf-ink-2)' }))} />
             </Card>
           ) : (
             <Card title={t('dash.todayApproval')} action={<a className="ad-link" onClick={() => onNav('approvals')}>{approvals.length} ›</a>} pad={false}>
@@ -135,7 +169,7 @@ export function DashboardPage({ role, onNav }) {
               { label: t('cols.teacher') }, { label: t('cols.branch') }, { label: t('cols.group'), align: 'right' },
               { label: t('cols.attendance'), align: 'right' }, { label: t('cols.cards'), align: 'right' }, { label: t('cols.rating'), align: 'right' },
             ]}>
-              {TEACHERS.map((tc, i) => (
+              {topTeachers.map((tc, i) => (
                 <tr key={i} onClick={() => onNav('teachers')}>
                   <td><div className="ad-cell-u"><SfAvatar name={tc.n} size={28} /><span style={{ fontWeight: 600 }}>{tc.n}</span></div></td>
                   <td style={{ color: 'var(--sf-muted)' }}>{tc.b}</td>
@@ -167,9 +201,9 @@ export function DashboardPage({ role, onNav }) {
 
           <Card title={t('dash.studentFlow')}>
             <div className="ad-flow">
-              <div className="ad-flow-row"><span className="ad-flow-l" style={{ color: 'var(--sf-success)' }}>{t('dash.flowNew')}</span><span className="sf-mono">86</span><Bar pct={86} color="var(--sf-success)" /></div>
-              <div className="ad-flow-row"><span className="ad-flow-l" style={{ color: 'var(--sf-primary)' }}>{t('dash.flowContinue')}</span><span className="sf-mono">1 698</span><Bar pct={96} color="var(--sf-primary)" /></div>
-              <div className="ad-flow-row"><span className="ad-flow-l" style={{ color: 'var(--sf-danger)' }}>{t('dash.flowLeft')}</span><span className="sf-mono">58</span><Bar pct={28} color="var(--sf-danger)" /></div>
+              <div className="ad-flow-row"><span className="ad-flow-l" style={{ color: 'var(--sf-success)' }}>{t('dash.flowNew')}</span><span className="sf-mono">{flowNew.toLocaleString('ru-RU')}</span><Bar pct={flowPct(flowNew)} color="var(--sf-success)" /></div>
+              <div className="ad-flow-row"><span className="ad-flow-l" style={{ color: 'var(--sf-primary)' }}>{t('dash.flowContinue')}</span><span className="sf-mono">{sm.active.toLocaleString('ru-RU')}</span><Bar pct={flowPct(sm.active)} color="var(--sf-primary)" /></div>
+              <div className="ad-flow-row"><span className="ad-flow-l" style={{ color: 'var(--sf-danger)' }}>{t('dash.flowLeft')}</span><span className="sf-mono">{sm.risk.toLocaleString('ru-RU')}</span><Bar pct={flowPct(sm.risk)} color="var(--sf-danger)" /></div>
             </div>
             <div className="ad-flow-net">{t('dash.netGrowth')} <span className="sf-mono" style={{ color: 'var(--sf-success)', fontWeight: 700 }}>+28</span> · {t('common.thisMonth')}</div>
           </Card>

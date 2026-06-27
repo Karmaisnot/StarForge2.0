@@ -1,24 +1,17 @@
-import { cloneElement } from 'react';
+import { cloneElement, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icons } from '../components/Icons.jsx';
 import { Button, Card, PageHeader, SfAvatar } from '../components/primitives.jsx';
 import { Kpi } from '../components/charts.jsx';
 import { useActions } from '../hooks/useActions.jsx';
 import { useCollection } from '../context/StoreContext.jsx';
-
-const DEPTS = [
-  { n: 'Matematika', head: 'Nigora Karimova', cnt: 12, groups: 18, color: 'var(--sf-primary)', members: ['Nigora Karimova', 'Bobur Aliyev', 'Sevara Olimova', 'Diyor F.'] },
-  { n: 'Ingliz tili', head: 'Aziz Tursunov', cnt: 14, groups: 22, color: 'var(--sf-success)', members: ['Aziz Tursunov', 'Madina A.', 'Jasur G.', 'Nilufar J.'] },
-  { n: 'Tabiiy fanlar', head: 'Malika Yusupova', cnt: 9, groups: 12, color: 'var(--sf-accent)', members: ['Malika Yusupova', 'Jasur Rahimov', 'Otabek E.'] },
-  { n: 'Qabul · Reception', head: 'Gulnora Saidova', cnt: 8, groups: 0, color: 'var(--sf-ink-2)', members: ['Gulnora Saidova', 'Dilfuza Y.', 'Sardor I.'] },
-  { n: 'Sotuv · Marketing', head: 'Rustam Olimov', cnt: 5, groups: 0, color: 'var(--sf-warn)', members: ['Rustam Olimov', 'Nodira K.'] },
-  { n: 'Moliya · Buxgalteriya', head: 'Akmal Yusupov', cnt: 3, groups: 0, color: 'var(--sf-success)', members: ['Akmal Yusupov', 'Sevinch D.'] },
-];
+import { deptMetrics } from '../lib/metrics.js';
 
 export function DepartmentsPage({ role }) {
   const { t } = useTranslation();
   const a = useActions();
-  const { items: depts, add, update } = useCollection('departments', DEPTS, 'n');
+  const { items: depts, add, update } = useCollection('departments');
+  const m = useMemo(() => deptMetrics(depts), [depts]);
 
   // Read-only org structure across every department.
   const showStructure = () =>
@@ -83,10 +76,10 @@ export function DepartmentsPage({ role }) {
         }
       />
       <div className="ad-kpi-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
-        <Kpi label={t('departments.kpiDepts')} value="6" icon={Icons.folder} />
-        <Kpi label={t('departments.kpiStaff')} value="51" accent="var(--sf-primary)" />
-        <Kpi label={t('departments.kpiTeaching')} value="3" sub={t('departments.teachingSub')} />
-        <Kpi label={t('departments.kpiAdmin')} value="3" sub={t('departments.adminSub')} />
+        <Kpi label={t('departments.kpiDepts')} value={String(m.total)} icon={Icons.folder} />
+        <Kpi label={t('departments.kpiStaff')} value={String(m.staff)} accent="var(--sf-primary)" />
+        <Kpi label={t('departments.kpiTeaching')} value={String(m.teaching)} sub={t('departments.teachingSub')} />
+        <Kpi label={t('departments.kpiAdmin')} value={String(m.admin)} sub={t('departments.adminSub')} />
       </div>
       <div className="og-dept-grid">
         {depts.map((d) => (

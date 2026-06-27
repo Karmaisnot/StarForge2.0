@@ -1,4 +1,4 @@
-import { cloneElement, useState } from 'react';
+import { cloneElement, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icons } from '../components/Icons.jsx';
 import { SfAvatar } from '../components/primitives.jsx';
@@ -7,6 +7,7 @@ import { usePreferences } from '../context/PreferencesContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { CURRENCIES, SF_SYM } from '../lib/format.js';
 import { usePopover } from '../hooks/useOutsideClick.js';
+import { useStore } from '../context/StoreContext.jsx';
 
 function CurrencyMenu() {
   const { t } = useTranslation();
@@ -42,15 +43,83 @@ function CurrencyMenu() {
   );
 }
 
+// Cross-entity index built once. Each searchable record knows which page it
+// lives on so a hit can route there.
+function entry(page, labelKey, name, sub) {
+  return { page, labelKey, name, sub, q: `${name} ${sub || ''}`.toLowerCase() };
+}
+function buildIndex(collections) {
+  const list = (name) => collections[name] || [];
+  return [
+    ...list('students').map((r) => entry('students', 'nav.students', r.n, r.g)),
+    ...list('teachers').map((r) => entry('teachers', 'nav.teachers', r.n, r.sub)),
+    ...list('parents').map((r) => entry('parents', 'nav.parents', r.n, r.ch)),
+    ...list('groups').map((r) => entry('groups', 'nav.groups', r.n, r.t)),
+    ...list('leads').map((r) => entry('leads', 'nav.leads', r.n, r.int)),
+  ];
+}
+
+function GlobalSearch({ cfg, onNav }) {
+  const { t } = useTranslation();
+  const pop = usePopover(false);
+  const [query, setQuery] = useState('');
+  const { collections } = useStore();
+  const allowed = useMemo(() => new Set(cfg.nav.map((n) => n.id)), [cfg]);
+  const index = useMemo(() => buildIndex(collections), [collections]);
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return index.filter((r) => allowed.has(r.page) && r.q.includes(q)).slice(0, 8);
+  }, [query, index, allowed]);
+
+  const go = (r) => {
+    onNav(r.page);
+    setQuery('');
+    pop.setOpen(false);
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (results[0]) go(results[0]);
+  };
+
+  return (
+    <div className="ad-pop ad-top-search-wrap" ref={pop.ref} style={{ flex: 1, minWidth: 0 }}>
+      <form className="ad-search ad-top-search" onSubmit={submit}>
+        {cloneElement(Icons.search, { size: 15, style: { color: 'var(--sf-muted)' } })}
+        <input
+          placeholder={t('common.searchAll')}
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); pop.setOpen(true); }}
+          onFocus={() => pop.setOpen(true)}
+        />
+        <span className="ad-kbd">⌘K</span>
+      </form>
+      {pop.open && query.trim() && (
+        <div className="ad-search-menu" onClick={(e) => e.stopPropagation()}>
+          {results.length === 0 ? (
+            <div className="ad-search-empty">{t('common.noResults')}</div>
+          ) : (
+            results.map((r, i) => (
+              <button key={i} className="ad-search-res" onClick={() => go(r)}>
+                <SfAvatar name={r.name} size={26} />
+                <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                  <div className="ad-search-res-n">{r.name}</div>
+                  <div className="ad-search-res-s">{r.sub}</div>
+                </div>
+                <span className="ad-search-res-tag">{t(r.labelKey)}</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Topbar({ cfg, current, onNav, onOpenDrawer }) {
   const { t } = useTranslation();
-  const { push } = useToast();
-  const [query, setQuery] = useState('');
-
-  const submitSearch = (e) => {
-    e.preventDefault();
-    if (query.trim()) push({ tone: 'info', title: t('toast.opened'), desc: query.trim() });
-  };
 
   return (
     <header className="ad-top">
@@ -62,14 +131,10 @@ export function Topbar({ cfg, current, onNav, onOpenDrawer }) {
         {cloneElement(Icons.chevR, { size: 12, style: { color: 'var(--sf-muted)' } })}
         <span className="ad-crumb-cur">{current ? t(current.labelKey) : ''}</span>
       </div>
-      <form className="ad-search ad-top-search" onSubmit={submitSearch}>
-        {cloneElement(Icons.search, { size: 15, style: { color: 'var(--sf-muted)' } })}
-        <input placeholder={t('common.searchAll')} value={query} onChange={(e) => setQuery(e.target.value)} />
-        <span className="ad-kbd">⌘K</span>
-      </form>
+      <GlobalSearch cfg={cfg} onNav={onNav} />
       <CurrencyMenu />
       <PreferencesMenu />
-      <button className="ad-top-ic" onClick={() => push({ tone: 'info', title: t('toast.opened'), desc: t('nav.messages') })} aria-label={t('nav.messages')}>
+      <button className="ad-top-ic" onClick={() => onNav('messages')} aria-label={t('nav.messages')}>
         {cloneElement(Icons.bell, { size: 18 })}
         <span className="ad-top-dot" />
       </button>

@@ -16,12 +16,19 @@ export function ChatsPage() {
   const a = useActions();
   const [sel, setSel] = useState(0);
   const [query, setQuery] = useState('');
+  const [threads, setThreads] = useState(THREADS);
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return q ? THREADS.filter((th) => `${th.t} ${th.p}`.toLowerCase().includes(q)) : THREADS;
-  }, [query]);
-  const cur = list[sel] || list[0] || THREADS[0];
+    return q ? threads.filter((th) => `${th.t} ${th.p}`.toLowerCase().includes(q)) : threads;
+  }, [threads, query]);
+  const cur = list[sel] || list[0] || threads[0];
+
+  const toggleFlag = () =>
+    a.flag(`${cur.t} ↔ ${cur.p}`, {
+      onConfirm: () =>
+        setThreads((prev) => prev.map((th) => (th === cur ? { ...th, flag: !th.flag } : th))),
+    });
 
   return (
     <>
@@ -74,7 +81,7 @@ export function ChatsPage() {
           <div className="ad-chatv-foot">
             {cloneElement(Icons.shield, { size: 14, style: { color: 'var(--sf-muted)' } })}
             <span>{t('chats.footNote')} {cur.flag && <b style={{ color: 'var(--sf-danger)' }}>{t('chats.flagged')}</b>}</span>
-            <button className="ad-btn ad-btn-soft" style={{ marginLeft: 'auto' }} onClick={a.flag}>{cloneElement(Icons.flag, { size: 13 })} {t('chats.flag')}</button>
+            <button className="ad-btn ad-btn-soft" style={{ marginLeft: 'auto' }} onClick={toggleFlag}>{cloneElement(Icons.flag, { size: 13 })} {t('chats.flag')}</button>
           </div>
         </Card>
       </div>

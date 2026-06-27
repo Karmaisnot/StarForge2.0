@@ -63,7 +63,8 @@
     "wd4": "Thu",
     "wd5": "Fri",
     "wd6": "Sat",
-    "wd7": "Sun"
+    "wd7": "Sun",
+    "noResults": "No results"
   },
   "nav": {
     "dash": "Dashboard",
@@ -103,7 +104,7 @@
     "managerConsole": "Manager console",
     "ceoWhoRole": "Chief Executive",
     "managerWhoRole": "Branch Manager",
-    "ceoScope": "All branches · 4",
+    "ceoScope": "All branches",
     "managerScope": "Yunusobod branch"
   },
   "shell": {
@@ -124,7 +125,11 @@
     "palSamarqand": "Samarqand",
     "palDaryo": "Daryo"
   },
-  "lang": { "uz": "Uzbek", "ru": "Russian", "en": "English" },
+  "lang": {
+    "uz": "Uzbek",
+    "ru": "Russian",
+    "en": "English"
+  },
   "cols": {
     "student": "Student",
     "group": "Group",
@@ -155,7 +160,13 @@
     "editPerm": "Edit",
     "create": "Create",
     "remove": "Delete",
-    "level": "Level"
+    "level": "Level",
+    "relation": "Relation",
+    "source": "Source",
+    "stage": "Stage",
+    "schedule": "Schedule",
+    "capacity": "Capacity",
+    "fee": "Monthly fee"
   },
   "status": {
     "paid": "Paid",
@@ -204,7 +215,7 @@
     "titleCeo": "Dashboard",
     "titleManager": "Branch dashboard",
     "subCeo": "Live metrics across all branches",
-    "subManager": "512 students · 28 groups · 16 staff",
+    "subManager": "Branch performance overview",
     "eyebrowCeo": "Tuesday · 19 May 2026 · 4 branches",
     "eyebrowManager": "Yunusobod branch · 19 May 2026",
     "newBranch": "New branch",
@@ -216,8 +227,8 @@
     "kpiChurn": "Churn",
     "churnTarget": "Target: < 4%",
     "kpiDebt": "Debt",
-    "debtFamiliesCeo": "142 families",
-    "debtFamiliesManager": "38 families",
+    "debtFamiliesCeo": "families in debt",
+    "debtFamiliesManager": "families in debt",
     "kpiNps": "NPS · satisfaction",
     "npsSub": "Parents",
     "kpiPending": "Pending approval",
@@ -250,7 +261,7 @@
     "recentEvents": "Recent events"
   },
   "branches": {
-    "eyebrow": "5 branches · 1842 students",
+    "eyebrow": "Branch network",
     "sub": "Management, comparison and opening a new branch",
     "openNew": "Open branch",
     "kpiActive": "Active branches",
@@ -276,8 +287,8 @@
     "legendRevenue": "Revenue (mln)"
   },
   "students": {
-    "subCeo": "1,842 students · 96 groups",
-    "subManager": "512 students · 28 groups",
+    "subCeo": "All students across every branch",
+    "subManager": "Students in your branch",
     "admit": "Admit",
     "kpiTotal": "Total",
     "kpiActive": "Active",
@@ -298,8 +309,8 @@
     "chipFreeSeats": "Free seats"
   },
   "teachers": {
-    "eyebrowCeo": "54 staff · 4 branches",
-    "eyebrowManager": "16 staff",
+    "eyebrowCeo": "All branch staff",
+    "eyebrowManager": "Your branch staff",
     "sub": "Teachers, assistants and ratings",
     "assignTask": "Assign task",
     "addStaff": "Staff",
@@ -380,12 +391,16 @@
     "promptChurn": "Churn causes",
     "promptForecast": "Revenue forecast",
     "promptRating": "Teacher ranking",
-    "promptCompare": "Compare branches"
+    "promptCompare": "Compare branches",
+    "replyRevenue": "Current monthly revenue is {{rev}}. Payment rate {{rate}}%, average check {{check}}.",
+    "replyChurn": "Right now {{risk}} students are at risk and {{debt}} families have debt. The main driver is low attendance and late payments.",
+    "replyStudents": "{{total}} students in total, {{active}} active. Average attendance {{att}}%.",
+    "replyDefault": "Here's what I see: {{total}} students, {{teachers}} teachers, {{rev}} monthly revenue."
   },
   "leads": {
     "eyebrow": "Yunusobod branch",
     "title": "Leads · Admissions",
-    "sub": "34 active leads · 28% conversion",
+    "sub": "Lead pipeline and conversion",
     "newLead": "New lead",
     "kpiActive": "Active leads",
     "kpiAdmitted": "Admitted this month",
@@ -403,19 +418,22 @@
     "viewAll": "View all",
     "requestedBy": "Requested by",
     "pending": "requests pending",
-    "empty": "No pending requests — all caught up."
+    "empty": "No pending requests — all caught up.",
+    "historyEmpty": "No processed requests yet",
+    "statusApproved": "Approved",
+    "statusRejected": "Rejected"
   },
   "schedule": {
     "eyebrow": "Yunusobod branch · Tuesday",
     "title": "Schedule · Rooms",
-    "sub": "5 rooms · 28 groups · 68% utilization",
+    "sub": "Room and group timetable",
     "lesson": "Lesson",
     "room": "Room"
   },
   "permissions": {
     "eyebrow": "Roles and permissions",
     "title": "Permissions · RBAC",
-    "sub": "9 roles · 82 staff · access level by module",
+    "sub": "Access levels by module",
     "template": "Template",
     "newRole": "New role",
     "rolesTitle": "Roles",
@@ -449,15 +467,15 @@
   },
   "departments": {
     "title": "Departments",
-    "sub": "6 departments · 51 staff · organizational structure",
+    "sub": "Organizational structure",
     "structure": "Structure chart",
     "newDept": "New department",
     "kpiDepts": "Departments",
     "kpiStaff": "Total staff",
     "kpiTeaching": "Teaching depts",
-    "teachingSub": "35 teachers",
+    "teachingSub": "teaching",
     "kpiAdmin": "Administrative",
-    "adminSub": "16 staff",
+    "adminSub": "administrative",
     "head": "Department head",
     "staffWord": "staff",
     "groupWord": "groups",
@@ -466,18 +484,18 @@
     "newCardSub": "Assign a head, add staff"
   },
   "hr": {
-    "eyebrowCeo": "82 staff · 4 branches",
-    "eyebrowManager": "16 staff · Yunusobod",
+    "eyebrowCeo": "All branches",
+    "eyebrowManager": "Your branch",
     "title": "HR · People",
     "sub": "Hiring, contracts and positions",
     "createStaff": "Create staff",
     "kpiTotal": "Total staff",
     "kpiVacancy": "Open vacancies",
-    "vacancySub": "3 urgent",
+    "vacancySub": "open positions",
     "kpiFund": "Payroll fund",
     "kpiTenure": "Avg tenure",
     "kpiOnLeave": "On leave",
-    "recruiting": "Hiring · 7 candidates",
+    "recruiting": "Hiring",
     "allCandidates": "All candidates",
     "colApplied": "Applied",
     "colInterview": "Interview",
@@ -509,13 +527,14 @@
     "colRetention": "Retention",
     "colTotal": "Total",
     "totalRow": "TOTAL",
-    "staffWord": "staff"
+    "staffWord": "staff",
+    "approved": "Approved"
   },
   "meetings": {
     "title": "Meetings",
     "sub": "Schedule a meeting for a department or the whole team",
     "schedule": "Schedule meeting",
-    "upcoming": "Upcoming meetings · 4",
+    "upcoming": "Upcoming meetings",
     "quick": "Quick meeting",
     "topic": "Topic",
     "topicPlaceholder": "Meeting name...",

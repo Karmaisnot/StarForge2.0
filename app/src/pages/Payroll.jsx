@@ -1,31 +1,60 @@
-import { cloneElement, useState } from 'react';
+import { cloneElement, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icons } from '../components/Icons.jsx';
 import { Button, Card, Money, Pill, PageHeader, SfAvatar, SfAiBadge } from '../components/primitives.jsx';
 import { Kpi } from '../components/charts.jsx';
 import { DataTable, Segmented } from '../components/common.jsx';
 import { useActions } from '../hooks/useActions.jsx';
+import { useCollection } from '../context/StoreContext.jsx';
 
-const ROWS = [
-  { n: 'Nigora Karimova', dept: 'Matematika', base: 6000000, cards: 900000, att: 600000, ret: 900000 },
-  { n: 'Aziz Tursunov', dept: 'Ingliz tili', base: 5500000, cards: 1100000, att: 600000, ret: 600000 },
-  { n: 'Bobur Aliyev', dept: 'Matematika', base: 5500000, cards: 750000, att: 500000, ret: 850000 },
-  { n: 'Sevara Olimova', dept: 'Matematika', base: 3500000, cards: 400000, att: 300000, ret: 0 },
-  { n: 'Malika Yusupova', dept: 'Tabiiy fanlar', base: 5500000, cards: 600000, att: 400000, ret: 700000 },
-  { n: 'Gulnora Saidova', dept: 'Qabul', base: 5000000, cards: 0, att: 400000, ret: 200000 },
-];
 const MONTH_FACTOR = { may: 1, apr: 0.96, mar: 0.92 };
 
-export function PayrollPage({ role }) {
+export function PayrollPage() {
   const { t } = useTranslation();
   const a = useActions();
-  const ceo = role === 'ceo';
+  const { items: payrollRows } = useCollection('payroll');
   const [month, setMonth] = useState('may');
+  const [approved, setApproved] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('sf-payroll-approved') || '[]'); } catch { return []; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('sf-payroll-approved', JSON.stringify(approved)); } catch { /* ignore */ }
+  }, [approved]);
+
   // The month segment really re-scales the run — base + every bonus column.
   const f = MONTH_FACTOR[month] ?? 1;
-  const rows = ROWS.map((r) => ({ ...r, base: Math.round(r.base * f), cards: Math.round(r.cards * f), att: Math.round(r.att * f), ret: Math.round(r.ret * f) }));
+  const rows = useMemo(
+    () => payrollRows.map((r) => ({ ...r, base: Math.round(r.base * f), cards: Math.round(r.cards * f), att: Math.round(r.att * f), ret: Math.round(r.ret * f) })),
+    [f, payrollRows],
+  );
   const sum = (sel) => rows.reduce((a, r) => a + sel(r), 0);
   const tot = sum((r) => r.base + r.cards + r.att + r.ret);
+  const isApproved = approved.includes(month);
+
+  const approvePay = () =>
+    a.confirm({
+      title: t('payroll.approvePay'),
+      message: t('payroll.title'),
+      confirmLabel: t('common.approve'),
+      toastTone: 'success',
+      onConfirm: () => setApproved((prev) => (prev.includes(month) ? prev : [...prev, month])),
+    });
+
+  const exportRun = () =>
+    a.exportData({
+      name: t('payroll.title'),
+      columns: [
+        { key: 'n', label: t('cols.staffMember') },
+        { key: 'dept', label: t('cols.department') },
+        { key: 'base', label: t('payroll.colBase') },
+        { key: 'cards', label: t('payroll.colCardBonus') },
+        { key: 'att', label: t('payroll.colAttBonus') },
+        { key: 'ret', label: t('payroll.colRetention') },
+        { label: t('payroll.colTotal'), value: (r) => String(r.base + r.cards + r.att + r.ret) },
+      ],
+      rows,
+      allRows: rows,
+    });
 
   return (
     <>
@@ -36,7 +65,8 @@ export function PayrollPage({ role }) {
         right={
           <>
             <Segmented value={month} onChange={setMonth} options={[{ id: 'may', label: 'May' }, { id: 'apr', label: 'Aprel' }, { id: 'mar', label: 'Mart' }]} />
-            <Button kind="primary" onClick={a.approve}>{cloneElement(Icons.check, { size: 14 })} {t('payroll.approvePay')}</Button>
+            <Button kind="soft" onClick={exportRun}>{cloneElement(Icons.download, { size: 14 })} {t('common.export')}</Button>
+            <Button kind="primary" onClick={approvePay}>{cloneElement(Icons.check, { size: 14 })} {t('payroll.approvePay')}</Button>
           </>
         }
       />
@@ -44,8 +74,8 @@ export function PayrollPage({ role }) {
         <Kpi label={t('payroll.kpiFund')} money={tot} accent="var(--sf-success)" icon={Icons.trend} />
         <Kpi label={t('payroll.kpiBase')} money={sum((r) => r.base)} />
         <Kpi label={t('payroll.kpiBonus')} money={sum((r) => r.cards + r.att + r.ret)} accent="var(--sf-accent)" sub={t('payroll.bonusSub')} />
-        <Kpi label={t('payroll.kpiStaff')} value={ceo ? '82' : '16'} />
-        <Kpi label={t('payroll.kpiState')} value={t('payroll.draft')} accent="var(--sf-warn)" sub={t('payroll.stateSub')} />
+        <Kpi label={t('payroll.kpiStaff')} value={String(rows.length)} />
+        <Kpi label={t('payroll.kpiState')} value={isApproved ? t('payroll.approved') : t('payroll.draft')} accent={isApproved ? 'var(--sf-success)' : 'var(--sf-warn)'} sub={t('payroll.stateSub')} />
       </div>
       <div className="og-payroll-note">
         <SfAiBadge compact>{t('payroll.autoCalc')}</SfAiBadge>
@@ -68,7 +98,7 @@ export function PayrollPage({ role }) {
                 <td align="right"><Money uzs={r.att} style={{ color: 'var(--sf-success)' }} /></td>
                 <td align="right"><Money uzs={r.ret} style={{ color: r.ret ? 'var(--sf-primary)' : 'var(--sf-muted)' }} /></td>
                 <td align="right"><Money uzs={total} style={{ fontWeight: 800, fontSize: 13 }} /></td>
-                <td align="center"><Pill tone="success" dot>{t('status.ready')}</Pill></td>
+                <td align="center"><Pill tone={isApproved ? 'success' : 'warn'} dot>{isApproved ? t('payroll.approved') : t('payroll.draft')}</Pill></td>
               </tr>
             );
           })}

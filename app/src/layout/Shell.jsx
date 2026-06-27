@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sidebar } from './Sidebar.jsx';
 import { Topbar } from './Topbar.jsx';
-import { BRANCHES } from '../config/roles.js';
+import { useScope } from '../context/ScopeContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 
 export function Shell({ cfg, active, onNav, children }) {
   const { t } = useTranslation();
   const { push } = useToast();
+  const { branchId, setBranch, options } = useScope();
   const [drawer, setDrawer] = useState(false);
-  const [branch, setBranch] = useState(cfg.defaultBranch);
 
   const navigate = (id) => {
     onNav(id);
@@ -18,7 +18,7 @@ export function Shell({ cfg, active, onNav, children }) {
 
   const switchBranch = (id) => {
     setBranch(id);
-    const b = BRANCHES.find((x) => x.id === id);
+    const b = options.find((x) => x.id === id);
     push({
       tone: 'info',
       title: t('toast.switchedBranch'),
@@ -34,8 +34,8 @@ export function Shell({ cfg, active, onNav, children }) {
         cfg={cfg}
         active={active}
         onNav={navigate}
-        branches={BRANCHES}
-        branch={branch}
+        branches={options}
+        branch={branchId}
         onBranch={switchBranch}
         open={drawer}
         onClose={() => setDrawer(false)}

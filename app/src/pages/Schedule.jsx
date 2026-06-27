@@ -8,15 +8,6 @@ import { useCollection } from '../context/StoreContext.jsx';
 
 const ROOMS = ['301', '302', '304', '305', '210'];
 const SLOTS = ['08:00', '09:30', '11:00', '14:00', '15:30', '17:00'];
-const LESSONS = [
-  { key: '301-08:00', n: 'Fizika', t: 'Malika Y.', c: 'var(--sf-accent)' },
-  { key: '304-09:30', n: '9-B Alg', t: 'Nigora K.', c: 'var(--sf-primary)' },
-  { key: '304-14:00', n: 'Alg Mid', t: 'Nigora K.', c: 'var(--sf-primary)' },
-  { key: '302-11:00', n: 'Ingliz B2', t: 'Aziz T.', c: 'var(--sf-success)' },
-  { key: '305-15:30', n: 'Geom', t: 'Bobur A.', c: 'var(--sf-ink-2)' },
-  { key: '210-17:00', n: 'Kimyo', t: 'Jasur R.', c: 'var(--sf-warn)' },
-  { key: '301-15:30', n: 'DTM', t: 'Malika Y.', c: 'var(--sf-accent)' },
-];
 
 // Week view spreads the room schedule across teaching days (Mon–Sat). Each
 // lesson maps to a stable weekday by hashing its key, so the board is populated
@@ -28,7 +19,7 @@ export function SchedulePage() {
   const { t } = useTranslation();
   const a = useActions();
   const [view, setView] = useState('day');
-  const { items: lessons, add } = useCollection('schedule', LESSONS, 'key');
+  const { items: lessons, add } = useCollection('schedule');
   const byKey = useMemo(() => Object.fromEntries(lessons.map((l) => [l.key, l])), [lessons]);
 
   const addLesson = () =>
@@ -64,7 +55,7 @@ export function SchedulePage() {
               <div key={wd} style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--sf-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center', paddingBottom: 6, borderBottom: '1px solid var(--sf-border)' }}>{t('common.wd' + wd)}</div>
                 {lessons.filter((l) => lessonDay(l) === wd).map((l) => (
-                  <button key={l.key} onClick={() => a.open(`${l.n} · ${l.t}`)} style={{ textAlign: 'left', background: l.c, color: '#FFFCF5', border: 'none', borderRadius: 8, padding: '7px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <button key={l.key} onClick={() => a.open(l.n, { title: l.n, sub: l.t, icon: Icons.cal, rows: [[t('cols.teacher'), l.t], [t('schedule.room'), l.key.split('-')[0]], [t('cols.date'), l.key.split('-')[1]]] })} style={{ textAlign: 'left', background: l.c, color: '#FFFCF5', border: 'none', borderRadius: 8, padding: '7px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span className="sf-mono" style={{ fontSize: 9.5, opacity: 0.85 }}>{l.key.split('-')[1]} · {l.key.split('-')[0]}</span>
                     <span style={{ fontSize: 11.5, fontWeight: 700 }}>{l.n}</span>
                     <span style={{ fontSize: 10, opacity: 0.85 }}>{l.t}</span>
@@ -85,7 +76,7 @@ export function SchedulePage() {
                 return (
                   <div key={r} className="ad-sched-cell">
                     {l && (
-                      <div className="ad-sched-lesson" style={{ background: l.c, cursor: 'pointer' }} onClick={() => a.open(`${l.n} · ${l.t}`)}>
+                      <div className="ad-sched-lesson" style={{ background: l.c, cursor: 'pointer' }} onClick={() => a.open(l.n, { title: l.n, sub: l.t, icon: Icons.cal, rows: [[t('cols.teacher'), l.t], [t('schedule.room'), l.key.split('-')[0]], [t('cols.date'), l.key.split('-')[1]]] })}>
                         <div className="ad-sl-n">{l.n}</div>
                         <div className="ad-sl-t">{l.t}</div>
                       </div>

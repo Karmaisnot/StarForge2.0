@@ -6,20 +6,13 @@ import { Segmented } from '../components/common.jsx';
 import { useActions } from '../hooks/useActions.jsx';
 import { useCollection } from '../context/StoreContext.jsx';
 
-const MEETINGS = [
-  { id: 'mt1', t: 'Haftalik filial yig‘ilishi', aud: 'Butun filial', cnt: 16, dNum: '19', d: 'today', tm: '17:00–18:00', loc: 'Konferens zal', who: 'Dilnoza Yo‘ldosheva', tone: 'var(--sf-primary)', soon: true, online: false },
-  { id: 'mt2', t: 'Matematika bo‘limi · metodik', aud: 'Matematika bo‘limi', cnt: 12, dNum: '20', d: 'tomorrow', tm: '14:00–15:00', loc: 'Onlayn · Zoom', who: 'Nigora Karimova', tone: 'var(--sf-accent)', online: true },
-  { id: 'mt3', t: 'Sotuv natijalari · oylik', aud: 'Sotuv · Marketing', cnt: 5, dNum: '23', d: 'date', tm: '11:00', loc: '301-xona', who: 'Rustam Olimov', tone: 'var(--sf-warn)', online: false },
-  { id: 'mt4', t: 'Yangi o‘qituvchilar treningi', aud: 'Tanlangan · 6 kishi', cnt: 6, dNum: '24', d: 'date', tm: '10:00–13:00', loc: 'O‘quv zal', who: 'Malika Yusupova', tone: 'var(--sf-success)', online: false },
-];
-
 export function MeetingsPage({ role }) {
   const { t } = useTranslation();
   const a = useActions();
   const [aud, setAud] = useState(0);
   const [place, setPlace] = useState('hall');
   const [topic, setTopic] = useState('');
-  const { items: meetings, add } = useCollection('meetings', MEETINGS, 'id');
+  const { items: meetings, add } = useCollection('meetings');
   const [view, setView] = useState('list');
 
   // Map a May day-number to an ISO weekday (Mon=1…Sun=7); 19 May 2026 is a Tue.
@@ -100,7 +93,7 @@ export function MeetingsPage({ role }) {
       />
       <div className="og2-meet-layout">
         <div>
-          <SectionHeader>{t('meetings.upcoming')}</SectionHeader>
+          <SectionHeader>{t('meetings.title')} · {meetings.length}</SectionHeader>
           {view === 'cal' ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
               {[1, 2, 3, 4, 5, 6, 7].map((wd) => (

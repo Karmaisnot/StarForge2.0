@@ -63,7 +63,8 @@
     "wd4": "Pa",
     "wd5": "Ju",
     "wd6": "Sha",
-    "wd7": "Ya"
+    "wd7": "Ya",
+    "noResults": "Hech narsa topilmadi"
   },
   "nav": {
     "dash": "Boshqaruv paneli",
@@ -103,7 +104,7 @@
     "managerConsole": "Manager konsoli",
     "ceoWhoRole": "Bosh direktor",
     "managerWhoRole": "Filial menejeri",
-    "ceoScope": "Barcha filiallar · 4 ta",
+    "ceoScope": "Barcha filiallar",
     "managerScope": "Yunusobod filiali"
   },
   "shell": {
@@ -124,7 +125,11 @@
     "palSamarqand": "Samarqand",
     "palDaryo": "Daryo"
   },
-  "lang": { "uz": "O‘zbekcha", "ru": "Ruscha", "en": "Inglizcha" },
+  "lang": {
+    "uz": "O‘zbekcha",
+    "ru": "Ruscha",
+    "en": "Inglizcha"
+  },
   "cols": {
     "student": "O‘quvchi",
     "group": "Guruh",
@@ -155,7 +160,13 @@
     "editPerm": "Tahrir",
     "create": "Yaratish",
     "remove": "O‘chirish",
-    "level": "Daraja"
+    "level": "Daraja",
+    "relation": "Qarindoshligi",
+    "source": "Manba",
+    "stage": "Bosqich",
+    "schedule": "Jadval",
+    "capacity": "Sig‘im",
+    "fee": "Oylik to‘lov"
   },
   "status": {
     "paid": "To‘langan",
@@ -204,7 +215,7 @@
     "titleCeo": "Boshqaruv paneli",
     "titleManager": "Filial paneli",
     "subCeo": "Barcha filiallar bo‘yicha jonli ko‘rsatkichlar",
-    "subManager": "512 o‘quvchi · 28 guruh · 16 xodim",
+    "subManager": "Filial ko‘rsatkichlari sharhi",
     "eyebrowCeo": "Seshanba · 19 May 2026 · 4 filial",
     "eyebrowManager": "Yunusobod filiali · 19 May 2026",
     "newBranch": "Yangi filial",
@@ -216,8 +227,8 @@
     "kpiChurn": "Churn (ketish)",
     "churnTarget": "Maqsad: < 4%",
     "kpiDebt": "Qarzdorlik",
-    "debtFamiliesCeo": "142 oila",
-    "debtFamiliesManager": "38 oila",
+    "debtFamiliesCeo": "qarzdor oilalar",
+    "debtFamiliesManager": "qarzdor oilalar",
     "kpiNps": "NPS · qoniqish",
     "npsSub": "Ota-onalar",
     "kpiPending": "Tasdiq kutmoqda",
@@ -250,7 +261,7 @@
     "recentEvents": "So‘nggi hodisalar"
   },
   "branches": {
-    "eyebrow": "5 filial · 1842 o‘quvchi",
+    "eyebrow": "Filiallar tarmog‘i",
     "sub": "Boshqaruv, taqqoslama va yangi filial ochish",
     "openNew": "Yangi filial ochish",
     "kpiActive": "Faol filiallar",
@@ -276,8 +287,8 @@
     "legendRevenue": "Daromad (mln)"
   },
   "students": {
-    "subCeo": "1 842 o‘quvchi · 96 guruh",
-    "subManager": "512 o‘quvchi · 28 guruh",
+    "subCeo": "Barcha filiallardagi o‘quvchilar",
+    "subManager": "Filialingiz o‘quvchilari",
     "admit": "Qabul",
     "kpiTotal": "Jami",
     "kpiActive": "Faol",
@@ -298,8 +309,8 @@
     "chipFreeSeats": "Bo‘sh joy bor"
   },
   "teachers": {
-    "eyebrowCeo": "54 xodim · 4 filial",
-    "eyebrowManager": "16 xodim",
+    "eyebrowCeo": "Barcha filiallar xodimlari",
+    "eyebrowManager": "Filialingiz xodimlari",
     "sub": "O‘qituvchilar, assistentlar va reyting",
     "assignTask": "Vazifa biriktirish",
     "addStaff": "Xodim",
@@ -380,12 +391,16 @@
     "promptChurn": "Churn sabablari",
     "promptForecast": "Daromad prognozi",
     "promptRating": "O‘qituvchi reytingi",
-    "promptCompare": "Filiallarni solishtir"
+    "promptCompare": "Filiallarni solishtir",
+    "replyRevenue": "Joriy oylik daromad — {{rev}}. To‘lov darajasi {{rate}}%, o‘rtacha chek {{check}}.",
+    "replyChurn": "Hozir {{risk}} o‘quvchi xavf guruhida, {{debt}} oilada qarz bor. Asosiy sabab — past davomat va kechiktirilgan to‘lovlar.",
+    "replyStudents": "Jami {{total}} o‘quvchi, {{active}} faol. O‘rtacha davomat {{att}}%.",
+    "replyDefault": "Ma‘lumotlar tayyor: {{total}} o‘quvchi, {{teachers}} o‘qituvchi, {{rev}} oylik daromad."
   },
   "leads": {
     "eyebrow": "Yunusobod filiali",
     "title": "Lidlar · Qabul",
-    "sub": "34 ta faol lid · konversiya 28%",
+    "sub": "Lidlar varonkasi va konversiya",
     "newLead": "Yangi lid",
     "kpiActive": "Faol lidlar",
     "kpiAdmitted": "Bu oy qabul",
@@ -403,19 +418,22 @@
     "viewAll": "Hammasini ko‘rish",
     "requestedBy": "So‘rovchi",
     "pending": "so‘rov kutilmoqda",
-    "empty": "Kutilayotgan so‘rovlar yo‘q."
+    "empty": "Kutilayotgan so‘rovlar yo‘q.",
+    "historyEmpty": "Hozircha ko‘rib chiqilgan so‘rovlar yo‘q",
+    "statusApproved": "Tasdiqlangan",
+    "statusRejected": "Rad etilgan"
   },
   "schedule": {
     "eyebrow": "Yunusobod filiali · Seshanba",
     "title": "Jadval · Xonalar",
-    "sub": "5 xona · 28 guruh · bandlik 68%",
+    "sub": "Xonalar va guruhlar jadvali",
     "lesson": "Dars",
     "room": "Xona"
   },
   "permissions": {
     "eyebrow": "Rol va ruxsatlar",
     "title": "Ruxsatlar · RBAC",
-    "sub": "9 ta rol · 82 xodim · modul bo‘yicha kirish darajasi",
+    "sub": "Modullar bo‘yicha kirish darajalari",
     "template": "Shablon",
     "newRole": "Yangi rol",
     "rolesTitle": "Rollar",
@@ -449,15 +467,15 @@
   },
   "departments": {
     "title": "Bo‘limlar",
-    "sub": "6 bo‘lim · 51 xodim · tashkiliy tuzilma",
+    "sub": "Tashkiliy tuzilma",
     "structure": "Tuzilma sxemasi",
     "newDept": "Yangi bo‘lim",
     "kpiDepts": "Bo‘limlar",
     "kpiStaff": "Jami xodim",
     "kpiTeaching": "O‘qit. bo‘limlar",
-    "teachingSub": "35 o‘qituvchi",
+    "teachingSub": "o‘qituvchilik",
     "kpiAdmin": "Ma’muriy",
-    "adminSub": "16 xodim",
+    "adminSub": "ma‘muriy",
     "head": "Bo‘lim boshlig‘i",
     "staffWord": "xodim",
     "groupWord": "guruh",
@@ -466,18 +484,18 @@
     "newCardSub": "Boshliq tayinlang, xodim qo‘shing"
   },
   "hr": {
-    "eyebrowCeo": "82 xodim · 4 filial",
-    "eyebrowManager": "16 xodim · Yunusobod",
+    "eyebrowCeo": "Barcha filiallar",
+    "eyebrowManager": "Sizning filial",
     "title": "HR · Xodimlar",
     "sub": "Ishga qabul, shartnomalar va lavozimlar",
     "createStaff": "Xodim yaratish",
     "kpiTotal": "Jami xodim",
     "kpiVacancy": "Ochiq vakansiya",
-    "vacancySub": "3 ta shoshilinch",
+    "vacancySub": "ochiq lavozimlar",
     "kpiFund": "Oylik fond",
     "kpiTenure": "O‘rt. ish staji",
     "kpiOnLeave": "Ta’tilda",
-    "recruiting": "Ishga qabul · 7 nomzod",
+    "recruiting": "Ishga qabul",
     "allCandidates": "Barcha nomzodlar",
     "colApplied": "Arizalar",
     "colInterview": "Suhbat",
@@ -509,13 +527,14 @@
     "colRetention": "Ushlab qolish",
     "colTotal": "Jami",
     "totalRow": "JAMI",
-    "staffWord": "xodim"
+    "staffWord": "xodim",
+    "approved": "Tasdiqlangan"
   },
   "meetings": {
     "title": "Yig‘ilishlar",
     "sub": "Bo‘lim yoki butun jamoa uchun yig‘ilish tayinlang",
     "schedule": "Yig‘ilish tayinlash",
-    "upcoming": "Yaqin yig‘ilishlar · 4",
+    "upcoming": "Yaqin yig‘ilishlar",
     "quick": "Tezkor yig‘ilish",
     "topic": "Mavzu",
     "topicPlaceholder": "Yig‘ilish nomi...",
