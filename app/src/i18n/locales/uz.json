@@ -618,5 +618,30 @@
     "secData": "Demo ma’lumotlar",
     "rowReset": "Demo ma’lumotlarni tiklash",
     "resetHint": "Dastlabki yozuvlarni qaytarish"
+  },
+  "connection": {
+    "title": "Backend ulanishi",
+    "status": { "mock": "Demo ma'lumotlar", "connected": "Ulangan", "disconnected": "Kirish" },
+    "mockNote": "Konsol hozir ichki demo ma'lumotlarni ko'rsatadi. Kirish uchun lokal muhitda live API'ni yoqing.",
+    "environmentNote": "Sessiya kaliti muhitda sozlangan. Uni yakunlash uchun deploy'dan VITE_API_TOKEN ni olib tashlang.",
+    "loginNote": "StarForge hisobingiz bilan kiring. Parol faqat API'ga yuboriladi va darhol formadan tozalanadi.",
+    "username": "Login",
+    "password": "Parol",
+    "login": "API'ga kirish",
+    "logout": "Chiqish",
+    "refresh": "Ma'lumotlarni yangilash",
+    "loading": "Ulanmoqda…",
+    "storageNote": "Sessiya kaliti faqat shu brauzerda saqlanadi.",
+    "sessionActive": "Sessiya faol",
+    "sessionActiveNote": "Live ma'lumotlar joriy hisob ruxsatlari bilan yuklandi.",
+    "loginFailed": "API ushbu ma'lumotlar bilan kirishni bajara olmadi.",
+    "refreshed": "Live ma'lumotlar yangilandi",
+    "refreshedDesc": "Konsol joriy sessiya bilan sinxronlashtirildi.",
+    "connectedPartial": "Sessiya cheklovlar bilan ulandi",
+    "connectedPartialDesc": "{{count}} ta ma'lumot manbasi ushbu rol uchun mavjud emas.",
+    "disconnected": "Chiqish bajarildi",
+    "disconnectedDesc": "Serverdagi sessiya va lokal live ma'lumotlar tozalandi.",
+    "disconnectedLocal": "Lokal sessiya tozalandi",
+    "disconnectedLocalDesc": "Sessiyani yakunlash uchun server bilan bog'lanib bo'lmadi."
   }
 }

@@ -57,18 +57,24 @@ export function FormModal({ close, onSubmit, title, sub, icon, tone = 'primary',
     Object.fromEntries(fields.map((f) => [f.name, f.value ?? (f.type === 'select' ? f.options?.[0] ?? '' : '')])),
   );
   const [touched, setTouched] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const isBlank = (f) => f.required && !String(values[f.name] ?? '').trim();
   const missing = fields.filter(isBlank);
 
   const set = (name) => (v) => setValues((s) => ({ ...s, [name]: v }));
-  const submit = () => {
+  const submit = async () => {
     if (missing.length) {
       setTouched(true);
       return;
     }
-    onSubmit?.(values);
-    close();
+    setSubmitError('');
+    try {
+      await onSubmit?.(values);
+      close();
+    } catch (err) {
+      setSubmitError(err?.message || t('toast.error'));
+    }
   };
 
   return (
@@ -91,6 +97,7 @@ export function FormModal({ close, onSubmit, title, sub, icon, tone = 'primary',
       }
     >
       <div className="sf-form">
+        {submitError && <div role="alert" className="sf-form-error">{submitError}</div>}
         {fields.map((f) => {
           const invalid = touched && isBlank(f);
           const control = { value: values[f.name], onChange: set(f.name), placeholder: f.placeholder, 'aria-invalid': invalid || undefined };

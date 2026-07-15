@@ -618,5 +618,30 @@
     "secData": "Demo data",
     "rowReset": "Reset demo data",
     "resetHint": "Restore the original records"
+  },
+  "connection": {
+    "title": "Backend connection",
+    "status": { "mock": "Demo data", "connected": "Connected", "disconnected": "Sign in" },
+    "mockNote": "The console is showing its built-in demo data. Enable the live API in your local environment to sign in.",
+    "environmentNote": "A session key is configured by the environment. Remove VITE_API_TOKEN from the deployment to end it.",
+    "loginNote": "Sign in with your StarForge account. The password is sent only to the API and is cleared from this form immediately.",
+    "username": "Username",
+    "password": "Password",
+    "login": "Sign in to API",
+    "logout": "Sign out",
+    "refresh": "Reload data",
+    "loading": "Connecting…",
+    "storageNote": "The session key stays only in this browser.",
+    "sessionActive": "Session is active",
+    "sessionActiveNote": "Live data is loaded under the current account permissions.",
+    "loginFailed": "The API could not sign in with those credentials.",
+    "refreshed": "Live data reloaded",
+    "refreshedDesc": "The console is synchronized with the current session.",
+    "connectedPartial": "Session connected with limits",
+    "connectedPartialDesc": "{{count}} data source(s) are not available for this role.",
+    "disconnected": "Signed out",
+    "disconnectedDesc": "The server session and local live data were cleared.",
+    "disconnectedLocal": "Local session cleared",
+    "disconnectedLocalDesc": "The server could not be reached to end the session."
   }
 }

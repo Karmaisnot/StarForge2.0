@@ -1,51 +1,82 @@
 # Data / API layer
 
-Everything in the app reads and writes data through this folder. Pages and the
-store call `api(name)`; they never know whether the response came from the
-built-in **mock server** or the **real backend**. Switching between them is a
-`.env` change, not a code change.
+Pages and the store access data only through `api(name)`. The provider is
+selected by `.env`: the default mock server keeps the demo usable; live mode
+uses the Starforge v1 API without changing the visual components.
 
-## Switching to the real backend (tomorrow)
+## Live setup
 
-1. Copy `app/.env.example` → `app/.env`
-2. Set:
-   ```
-   VITE_USE_MOCK=false
-   VITE_API_URL=https://your-api-host/v1
-   ```
-3. Restart `npm run dev`. That's it — no page changes.
+1. Copy `.env.example` to `.env`.
+2. Set `VITE_USE_MOCK=false`.
+3. During local development leave `VITE_API_URL` blank and set
+   `VITE_API_PROXY_TARGET` to the tenant API host.
+4. Open **Settings → Backend connection** and sign in with a valid tenant
+   account. The opaque session key from `POST /api/v1/auth/login/` is stored
+   only at runtime in this browser; the password is never persisted.
+5. Restart `npm run dev` after changing environment variables.
 
-A bearer token can be provided two ways:
-- runtime: `localStorage.setItem('sf-auth-token', '<jwt>')` (wins), or
-- build-time: `VITE_API_TOKEN=...` in `.env`.
+The supplied deployment is HTTPS-only. The local proxy avoids its current
+cross-origin restriction for Vite; in production serve the console from the
+same tenant origin as the API:
 
-## The REST contract the backend must implement
+```env
+VITE_API_URL=
+VITE_API_PROXY_TARGET=https://starforge.78.111.91.113.nip.io
+VITE_USE_MOCK=false
+```
 
-For each resource (`students`, `teachers`, `groups`, `parents`, `payments`,
-`leads`, `hr`, `departments`, `branches`, `approvals`, `payroll`, `meetings`,
-`messages`, `schedule`, `approvalHistory`):
+Never put a real session key in a production `VITE_API_TOKEN`: every `VITE_*`
+value is bundled for the browser. Use a runtime session key instead.
 
-| Method | Path                 | Body            | Returns          |
-| ------ | -------------------- | --------------- | ---------------- |
-| GET    | `/<resource>`        | —               | array of rows    |
-| POST   | `/<resource>`        | new row         | the created row  |
-| PATCH  | `/<resource>/<id>`   | partial patch   | the updated row  |
-| DELETE | `/<resource>/<id>`   | —               | `{ ok: true }`   |
+The sample account in the backend repository belongs to its locally seeded
+`demo.localhost` tenant. It is not a credential for the public `nip.io`
+deployment; sign in with a real account for that tenant.
 
-Each resource's `<id>` field is declared in `resources.js` (`idKey`) — most use
-`id`, but some keyed collections use `n` (name) or `key`. The row shapes are
-exactly the seed objects in `../data/dataset.js` and `mock/seeds.js`; the real
-API should return the same fields.
+`http.js` sends `Authorization: Bearer <token>`, `Accept-Language`, and an
+`X-Request-ID` on every request. It unwraps the backend's
+`{ success, data, pagination? }` envelope, follows the remaining list pages
+for the existing client-side dashboards, and exposes server error codes, field
+errors, retry timing, and request IDs through `ApiError`.
+
+## Resource mapping
+
+The legacy console names map to real backend endpoints:
+
+| Console collection | API route |
+| --- | --- |
+| students | `/api/v1/students/` |
+| teachers | `/api/v1/teachers/` |
+| groups | `/api/v1/cohorts/` |
+| parents | `/api/v1/parents/` |
+| payments | `/api/v1/payments/` |
+| HR | `/api/v1/org/staff/` |
+| departments | `/api/v1/org/departments/` |
+| branches | `/api/v1/org/branches/` |
+| approvals | `/api/v1/approvals/requests/` |
+| meetings | `/api/v1/meetings/` |
+| messages | `/api/v1/messaging/threads/` |
+| schedule | `/api/v1/schedule/lessons/` |
+
+`adapters.js` converts these responses to the existing page view models and
+joins branch/cohort labels after related collections load. Leads, payroll, and
+the old approval-history UI have no one-to-one CRUD endpoint in the current
+schema; their live lists remain empty until the matching screens are designed
+against their dedicated backend operations.
+
+### Live write safety
+
+The live console is deliberately read-only for now. Its legacy create/edit/
+delete forms use display fields that do not match the backend DTOs, so the API
+layer blocks those requests rather than risking a mutation of real data. Each
+write flow needs its own request adapter (for example student `branch` and
+contact fields, payment `/cash/` operation, approval actions) before it is
+enabled.
 
 ## Files
 
-- `config.js` — reads env, decides mock vs real (the single branch point).
-- `http.js` — fetch wrapper (base URL, JSON, bearer auth, timeout, `ApiError`).
-- `resources.js` — the resource registry: REST path, `idKey`, mock seed.
-- `mock/` — the mock server: `db.js` (in-memory + localStorage), `server.js`
-  (REST router with simulated latency), `seeds.js` (hand-authored collections).
-- `index.js` — public surface: `api(name)`, `mockSnapshot()`, `resetData()`.
-
-The store (`context/StoreContext.jsx`) hydrates the first paint from the mock DB
-synchronously in mock mode, and loads asynchronously against the real API.
-Mutations are optimistic with rollback on failure.
+- `config.js` — Vite environment and API mode.
+- `http.js` — fetch, auth, locale, request ID, timeout, and API envelopes.
+- `resources.js` — console-to-v1 endpoint registry and mock IDs.
+- `adapters.js` — backend response compatibility mapping for existing pages.
+- `mock/` — local mock database and request router.
+- `index.js` — public `api(name)` surface.

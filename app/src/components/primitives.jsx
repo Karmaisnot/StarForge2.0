@@ -109,12 +109,13 @@ export function Money({ uzs, className, style }) {
 }
 
 // Buttons.
-export function Button({ children, kind = 'soft', onClick, accent, type = 'button', style }) {
+export function Button({ children, kind = 'soft', onClick, accent, type = 'button', style, disabled = false }) {
   return (
     <button
       type={type}
       className={'ad-btn ad-btn-' + kind}
       onClick={onClick}
+      disabled={disabled}
       style={{ ...(accent && kind === 'primary' ? { background: accent } : {}), ...style }}
     >
       {children}

@@ -8,6 +8,7 @@ import { useStore } from '../context/StoreContext.jsx';
 import { LANGUAGES } from '../i18n/index.js';
 import { CURRENCIES } from '../lib/format.js';
 import { useActions } from '../hooks/useActions.jsx';
+import { ApiConnectionCard } from '../components/ApiConnectionCard.jsx';
 
 export function SettingsPage({ role }) {
   const { t, i18n } = useTranslation();
@@ -88,6 +89,7 @@ export function SettingsPage({ role }) {
             <Button kind="soft" onClick={a.save}>{t('common.edit')}</Button>
           </div>
         </Card>
+        <ApiConnectionCard />
         {sections.map((sec, i) => (
           <Card key={i} title={sec.h} pad={false}>
             {sec.rows.map((r, j) => {

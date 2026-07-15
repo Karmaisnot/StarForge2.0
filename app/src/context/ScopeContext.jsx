@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { BRANCH_SWITCHER } from '../data/dataset.js';
+import { useCollection } from './StoreContext.jsx';
+import { API_CONFIG } from '../api/index.js';
 
 // Owns the active branch scope. The sidebar switcher writes it; pages read it to
 // filter their collections, so picking a branch genuinely narrows the data (not
@@ -9,9 +11,18 @@ const ScopeContext = createContext(null);
 
 export function ScopeProvider({ role, defaultBranch, children }) {
   const isManager = role === 'manager';
+  const { items: liveBranches } = useCollection('branches');
   const options = useMemo(
-    () => (isManager ? BRANCH_SWITCHER.filter((b) => b.id === defaultBranch) : BRANCH_SWITCHER),
-    [isManager, defaultBranch],
+    () => {
+      if (API_CONFIG.useMock) {
+        return isManager ? BRANCH_SWITCHER.filter((b) => b.id === defaultBranch) : BRANCH_SWITCHER;
+      }
+
+      const apiOptions = liveBranches.map((branch) => ({ id: branch.id, name: branch.n, students: branch.st }));
+      if (isManager) return apiOptions;
+      return [{ id: 'all', name: '__ALL__', students: apiOptions.reduce((sum, branch) => sum + branch.students, 0), branches: apiOptions.length }, ...apiOptions];
+    },
+    [isManager, defaultBranch, liveBranches],
   );
   const [branchId, setBranchId] = useState(defaultBranch);
 
@@ -29,8 +40,14 @@ export function ScopeProvider({ role, defaultBranch, children }) {
   // Filter any branch-tagged collection by the active scope. `key` is the field
   // holding the branch name (defaults to the app-wide `b`).
   const scopeBranch = useCallback(
-    (list, key = 'b') => (isAll || !branchName ? list : list.filter((x) => x[key] === branchName)),
-    [isAll, branchName],
+    (list, key = 'b') => {
+      if (isAll || !branchName) return list;
+      return list.filter((item) => {
+        if (!API_CONFIG.useMock && item._branchId != null) return String(item._branchId) === String(current?.id);
+        return item[key] === branchName;
+      });
+    },
+    [isAll, branchName, current],
   );
 
   const value = useMemo(

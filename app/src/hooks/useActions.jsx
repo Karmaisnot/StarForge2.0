@@ -45,8 +45,8 @@ export function useActions() {
                 { name: 'note', label: t('ui.fNote'), type: 'textarea' },
               ]
             }
-            onSubmit={(v) => {
-              o.onSubmit?.(v);
+            onSubmit={async (v) => {
+              await o.onSubmit?.(v);
               toast('success', t('toast.created'), v.name || o.title || t('toast.createdDesc'));
             }}
           />
@@ -65,8 +65,8 @@ export function useActions() {
                 { name: 'note', label: t('ui.fNote'), type: 'textarea' },
               ]
             }
-            onSubmit={(v) => {
-              o.onSubmit?.(v);
+            onSubmit={async (v) => {
+              await o.onSubmit?.(v);
               toast('success', t('toast.saved'), v.name || t('toast.savedDesc'));
             }}
           />
@@ -86,8 +86,8 @@ export function useActions() {
                 { name: 'text', label: t('ui.message'), type: 'textarea', required: true, rows: 4, placeholder: t('messages.msgPlaceholder') },
               ]
             }
-            onSubmit={(v) => {
-              o.onSubmit?.(v);
+            onSubmit={async (v) => {
+              await o.onSubmit?.(v);
               toast('success', t('toast.sent'), t('toast.sentDesc'));
             }}
           />
@@ -108,8 +108,8 @@ export function useActions() {
                 { name: 'due', label: t('messages.tfDue'), type: 'date' },
               ]
             }
-            onSubmit={(v) => {
-              o.onSubmit?.(v);
+            onSubmit={async (v) => {
+              await o.onSubmit?.(v);
               toast('success', t('toast.taskAssigned'), v.to);
             }}
           />
